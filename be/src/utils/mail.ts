@@ -24,7 +24,7 @@ class mail{
       return;
     }
     catch (error){
-      console.error("Error send mail:", error);
+      console.error("Không gửi được email, kiểm tra lại tài khoản email");
       throw error;
     }
   };

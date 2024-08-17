@@ -4,6 +4,7 @@ import mail from "../utils/mail";
 import User from "../models/user";
 import bcrypt from "bcrypt";
 import validatePassword from "../utils/validatePassword";
+import validateEmail from "email-validator";
 
 const createToken = (payload: object, expiresIn: string): string => {
     const secret = process.env.ACTIVATION_SECRET!;
@@ -13,20 +14,21 @@ const createToken = (payload: object, expiresIn: string): string => {
 
 const handleUserNotFoundOrDeleted = (res: Response, user: any): void => {
     if (!user) {
-        res.status(401).send('Email or password incorrect');
+        res.status(401).send('Email hoặc mật khẩu không chính xác');
     } else if (user.is_delete) {
-        res.status(403).send('User has been deleted, contact administrator to unlock');
+        res.status(403).send('Người dùng đã bị xóa, liên hệ quản trị viên để mở khóa');
     }
 };
+
 const sendEmail = async (email: string, subject: string, message: string, res: Response): Promise<void> => {
     try {
         await mail.sendMail({ email, subject, message });
         res.status(201).json({
             success: true,
-            message: `Please check your email: ${email} to activate your account`,
+            message: `Vui lòng kiểm tra email của bạn: ${email} để kích hoạt tài khoản`,
         });
     } catch (err: any) {
-        res.status(500).send('Send mail error');
+        res.status(500).send('Không thể gửi được email');
     }
 };
 
@@ -34,72 +36,91 @@ class UserController {
     async register(req: Request, res: Response): Promise<void> {
         try {
             const { email, password, firstname, lastname} = req.body;
-            const userExisted = await User.findOne({ email });
 
-            if (userExisted) {
-                res.status(400).send('User already exists');
+            if(!validateEmail.validate(email)){
+                res.status(400).send('Email không đáp ứng yêu cầu');
                 return;
             }
 
             if (!validatePassword(password)) {
-              res.status(400).send('Password does not meet the required criteria');
+              res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
               return;
             }
+
+            const userExisted = await User.findOne({ email });
+
+            if (userExisted) {
+                res.status(400).send('Người dùng đã tồn tại');
+                return;
+            }
+           
             const activationToken = createToken({ email, password , firstname, lastname }, '5m');
             const activationUrl = `http://localhost:3000/verify/${activationToken}`;
-            const message = `Hello, Please click this link to activate your account: ${activationUrl}`;
-            await sendEmail(email, "Confirm your account", message, res);
+            const message = `Xin chào, vui lòng nhấp vào liên kết này để kích hoạt tài khoản của bạn: ${activationUrl}`;
+            await sendEmail(email, "Xác nhận tài khoản của bạn", message, res);
         } catch (err) {
-            res.status(400).send('Bad request');
+            res.status(400).send('Yêu cầu không hợp lệ');
         }
     }
 
     async login(req: Request, res: Response): Promise<void> {
         try {
             const { email, password } = req.body;
-            const user = await User.findOne({ email });
+            if(!validateEmail.validate(email)){
+                res.status(400).send('Email không đáp ứng yêu cầu');
+                return;
+            }
+
+            if (!validatePassword(password)) {
+                res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
+                return;
+            }
+
+            const user = await User.findOne({ email }).select('-__v');
 
             if (!user || user.is_delete) {
                 handleUserNotFoundOrDeleted(res, user);
                 return;
             }
 
-            if (!validatePassword(password)) {
-                res.status(400).send('Password does not meet the required criteria');
-                return;
-            }
-
             const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
             if (!isPasswordCorrect) {
-                res.status(401).send('Email or password incorrect');
+                res.status(401).send('Email hoặc mật khẩu không chính xác');
                 return;
             }
-
+            const {  password: _,  ...userDetails } = user.toObject();
             const token = createToken({ email }, '1h');
-            res.status(200).send({ token, user });
+            res.status(200).send({ token, user: userDetails });
         } catch (err) {
-            res.status(500).send('Bad request');
+            console.error('Lỗi khi đăng nhập:', err);
+            res.status(500).send('Lỗi máy chủ nội bộ');
         }
     }
 
     async resetPassword(req: Request, res: Response): Promise<void> {
         try {
             const { email } = req.body;
+
+            if(!validateEmail.validate(email)){
+                res.status(400).send('Email không đáp ứng yêu cầu');
+                return;
+            }
+
             const user = await User.findOne({ email });
 
             if (!user) {
-                res.status(401).send('Email does not exist');
+                res.status(401).send('Email không tồn tại');
                 return;
             }
 
             const resetPasswordToken = createToken({ email }, '5m');
             const resetPasswordUrl = `http://localhost:3000/reset-password/${resetPasswordToken}`;
-            const message = `Hello, Please click this link to reset your password: ${resetPasswordUrl}`;
+            const message = `Xin chào, vui lòng nhấp vào liên kết này để đặt lại mật khẩu của bạn: ${resetPasswordUrl}`;
 
-            await sendEmail(email, "Reset your account", message, res);
+            await sendEmail(email, "Đặt lại mật khẩu của bạn", message, res);
         } catch (err) {
-            res.status(400).send('Bad request');
+            res.status(400).send('Yêu cầu không hợp lệ');
         }
     }
 }

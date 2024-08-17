@@ -34,7 +34,7 @@ const User = new Schema<IUser>({
     },
     password: {
         type: String,
-        required: true
+        required: true,
     },
     address: {
         type: String,
@@ -57,7 +57,8 @@ const User = new Schema<IUser>({
     },
     is_delete: {
         type: Boolean,
-        default: false
+        default: false,
+        select: false
     }
     
 }, {
