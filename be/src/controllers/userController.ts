@@ -33,7 +33,7 @@ const sendEmail = async (email: string, subject: string, message: string, res: R
 class UserController {
     async register(req: Request, res: Response): Promise<void> {
         try {
-            const { email, password } = req.body;
+            const { email, password, firstname, lastname} = req.body;
             const userExisted = await User.findOne({ email });
 
             if (userExisted) {
@@ -45,7 +45,7 @@ class UserController {
               res.status(400).send('Password does not meet the required criteria');
               return;
             }
-            const activationToken = createToken({ email, password }, '5m');
+            const activationToken = createToken({ email, password , firstname, lastname }, '5m');
             const activationUrl = `http://localhost:3000/verify/${activationToken}`;
             const message = `Hello, Please click this link to activate your account: ${activationUrl}`;
             await sendEmail(email, "Confirm your account", message, res);

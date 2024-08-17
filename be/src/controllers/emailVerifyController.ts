@@ -11,7 +11,7 @@ class emailVerifyController {
             const {token} = req.body;
             const secret = process.env.ACTIVATION_SECRET!;
             const emailFromToken = jwt.verify(token, secret) as JwtPayload;
-            const {email, password} = emailFromToken;
+            const {email, password, firstname, lastname} = emailFromToken;
             const user = await User.findOne({email}).exec();
             if(user) {
                 res.status(401).send('User already exits');
@@ -20,7 +20,9 @@ class emailVerifyController {
             const hashPassword = bcrypt.hashSync(password.toString(), 10);
             await User.create({ 
                 email,
-                password : hashPassword
+                password : hashPassword,
+                firstname,
+                lastname
             })
             res.status(201).send('User created successfully');
             
