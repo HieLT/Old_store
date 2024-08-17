@@ -46,7 +46,7 @@ class UserController {
               return;
             }
             const activationToken = createToken({ email, password }, '5m');
-            const activationUrl = `http://localhost:5174/verify/${activationToken}`;
+            const activationUrl = `http://localhost:3000/verify/${activationToken}`;
             const message = `Hello, Please click this link to activate your account: ${activationUrl}`;
             await sendEmail(email, "Confirm your account", message, res);
         } catch (err) {
@@ -94,7 +94,7 @@ class UserController {
             }
 
             const resetPasswordToken = createToken({ email }, '5m');
-            const resetPasswordUrl = `http://localhost:5174/reset-password/${resetPasswordToken}`;
+            const resetPasswordUrl = `http://localhost:3000/reset-password/${resetPasswordToken}`;
             const message = `Hello, Please click this link to reset your password: ${resetPasswordUrl}`;
 
             await sendEmail(email, "Reset your account", message, res);
