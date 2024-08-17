@@ -1,0 +1,5 @@
+-post localhost:8080/user/register //input : email,password (body req)
+-post localhost:8080/verify-email/register //input :token 
+-post localhost:8080/user/login //input :email,password 
+-put localhost:8080/user/reset-password //input: email
+-put localhost:8080/verify-email/reset-password //input: token,resetPassword
