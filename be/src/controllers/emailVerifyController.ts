@@ -5,11 +5,13 @@ import bcrypt from "bcrypt";
 import { TokenExpiredError } from "jsonwebtoken";
 import validatePassword from "../utils/validatePassword";
 
+const secret = process.env.ACTIVATION_SECRET!;
+
 class emailVerifyController {
     async emailRegisterVerification(req: Request, res: Response): Promise<void> {
         try {
             const { token } = req.body;
-            const secret = process.env.ACTIVATION_SECRET!;
+
             const emailFromToken = jwt.verify(token, secret) as JwtPayload;
             const { email, password, firstname, lastname } = emailFromToken;
             const user = await User.findOne({ email }).exec();
@@ -17,13 +19,8 @@ class emailVerifyController {
                 res.status(401).send('Người dùng đã tồn tại');
                 return;
             }
-            const hashPassword = bcrypt.hashSync(password.toString(), 10);
-            await User.create({
-                email,
-                password: hashPassword,
-                firstname,
-                lastname
-            });
+
+
             res.status(201).send('Người dùng đã được tạo thành công');
 
         } catch (err: any) {

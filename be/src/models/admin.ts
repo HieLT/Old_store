@@ -1,13 +1,13 @@
-import {model, Schema} from "mongoose";
+import { model, Schema } from "mongoose";
 
 export interface IAdmin {
     _id: Schema.Types.ObjectId;
     username: string;
     password: string;
-    role: string;
+    role: "admin" | "superadmin"; 
     is_active: boolean;
     is_deleted: boolean;
-};
+}
 
 const Admin = new Schema<IAdmin>({
     username: {
@@ -20,11 +20,8 @@ const Admin = new Schema<IAdmin>({
     },
     role: {
         type: String,
-        required: true
-    },
-    is_active: {
-        type: Boolean,
-        default: false
+        enum: ["admin", "superadmin"], 
+        default: "admin"
     },
     is_deleted: {
         type: Boolean,

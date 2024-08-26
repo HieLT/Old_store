@@ -1,4 +1,5 @@
 import passwordValidator from 'password-validator';
+import { isNull } from 'util';
 
 const passwordSchema = new passwordValidator();
 
@@ -11,6 +12,7 @@ passwordSchema
     .has().not().spaces()                           // Should not have spaces
 
 const validatePassword = (inputPassword: string): boolean => {
+    if (isNull(inputPassword)) return false; 
     const result = passwordSchema.validate(inputPassword);
     return Array.isArray(result) ? result.length === 0 : result === true; // length =0 : false
 };

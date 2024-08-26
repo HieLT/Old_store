@@ -1,10 +1,14 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import jwt, { SignOptions } from 'jsonwebtoken';
 import mail from "../utils/mail";
 import User from "../models/user";
 import bcrypt from "bcrypt";
 import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
+import passport from "../utils/passport";
+
+const fe_hostname = process.env.fe_hostname ;
+const fe_port = process.env.fe_port;
 
 const createToken = (payload: object, expiresIn: string): string => {
     const secret = process.env.ACTIVATION_SECRET!;
@@ -41,12 +45,6 @@ class UserController {
                 res.status(400).send('Email không đáp ứng yêu cầu');
                 return;
             }
-
-            if (!validatePassword(password)) {
-              res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
-              return;
-            }
-
             const userExisted = await User.findOne({ email });
 
             if (userExisted) {
@@ -54,8 +52,8 @@ class UserController {
                 return;
             }
            
-            const activationToken = createToken({ email, password , firstname, lastname }, '5m');
-            const activationUrl = `http://localhost:3000/verify/${activationToken}`;
+            const activationToken = createToken({ email, password , firstname, lastname }, '3d');
+            const activationUrl = `http://${fe_hostname}:${fe_port}/verify/${activationToken}`;
             const message = `Xin chào, vui lòng nhấp vào liên kết này để kích hoạt tài khoản của bạn: ${activationUrl}`;
             await sendEmail(email, "Xác nhận tài khoản của bạn", message, res);
         } catch (err) {
@@ -115,7 +113,7 @@ class UserController {
             }
 
             const resetPasswordToken = createToken({ email }, '5m');
-            const resetPasswordUrl = `http://localhost:3000/reset-password/${resetPasswordToken}`;
+            const resetPasswordUrl = `http://${fe_hostname}:${fe_port}/reset-password/${resetPasswordToken}`;
             const message = `Xin chào, vui lòng nhấp vào liên kết này để đặt lại mật khẩu của bạn: ${resetPasswordUrl}`;
 
             await sendEmail(email, "Đặt lại mật khẩu của bạn", message, res);
@@ -123,6 +121,55 @@ class UserController {
             res.status(400).send('Yêu cầu không hợp lệ');
         }
     }
+    
+    loginGoogle(req: Request, res: Response, next: NextFunction) : void {
+        passport.authenticate('google', {
+            scope: ['email', 'profile']
+        })(req, res, next);
+    }
+    
+    callbackGoogle(req: Request, res: Response, next:NextFunction): void {    
+        passport.authenticate('google', (err: any, user: Express.User, info: any) => {
+            if (err) {
+                return next(err);
+            }
+            if (!user) {
+                return res.redirect('fail');
+            }
+            req.logIn(user, (err) => {
+                if (err) {
+                    return next(err);
+                }
+                return res.redirect('success');
+            });
+        })(req, res, next);
+    }
+
+    loginGoogleSuccess(req: Request, res: Response): void{
+        req.user ? res.status(201).send('hello'): res.status(403).send('Chưa đăng nhập') ;
+    }
+
+    loginGoogleFail(req: Request, res: Response): void{
+        res.status(401).send('đăng nhập bằng google không thành công')
+    }
+    googleLogout(req: Request, res: Response): void {
+        req.logout((err: any) => {
+            if (err) {
+                console.error("Error during logout:", err);
+                return res.status(500).send('Failed to log out.');
+            }
+            req.session.destroy((err: any) => {
+                if (err) {
+                    console.error("Error destroying session:", err);
+                    return res.status(500).send('Failed to destroy session.');
+                }
+                res.clearCookie('connect.sid');
+                res.redirect(`http://${fe_hostname}:${fe_port}`);
+            });
+        });
+    }
+    
+
 }
 
 export default new UserController();

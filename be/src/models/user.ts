@@ -3,16 +3,14 @@ import {model,  Schema} from "mongoose";
 export interface IUser {
     _id: Schema.Types.ObjectId;
     email: string;
-    phone: string
+    phone: string | null;
     firstname: string;
     lastname: string;
     password: string;
-    address: string;
-    avatar: string;
-    confirmed_at: Date;
+    address: string | null;
+    avatar: string | null ;
     follower_ids: Schema.Types.ObjectId[];
     following_user_ids: Schema.Types.ObjectId[];
-    is_active: boolean;
     is_delete: boolean;
 };
 
@@ -22,7 +20,8 @@ const User = new Schema<IUser>({
         required: true
     },
     phone :{
-        type: String 
+        type: String ,
+        default: null
     },
     firstname: {
         type: String,
@@ -34,33 +33,26 @@ const User = new Schema<IUser>({
     },
     password: {
         type: String,
-        required: true,
     },
     address: {
         type: String,
+        default: null
     },
     avatar: {
         type: String,
-    },
-    confirmed_at: {
-        type: Date,
+        default: null
     },
     follower_ids: [{
-        type: Schema.Types.ObjectId
+        type: Schema.Types.ObjectId,
     }],
     following_user_ids: [{
-        type: Schema.Types.ObjectId
+        type: Schema.Types.ObjectId,
     }],
-    is_active: {
-        type: Boolean,
-        default: false
-    },
     is_delete: {
         type: Boolean,
         default: false,
         select: false
     }
-    
 }, {
     timestamps: true
 });
