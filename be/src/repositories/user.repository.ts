@@ -1,29 +1,52 @@
 import User, { IUser } from "../models/user";
 import bcrypt from "bcrypt";
-import validatePassword from "../utils/validatePassword";
-import validateEmail from "email-validator";
 
 class UserRepo {
-    async createUser(email:string, password:string, firstname:string, lastname:string) : Promise<boolean> {
-        try{
-            if (!validatePassword(password) || !validateEmail.validate(email)) return false;
-
-            const hashPassword = bcrypt.hashSync(password.toString(), 10);
-            await User.create({
-                email,
-                password: hashPassword,
-                firstname,
-                lastname
-            });
-
-            return true;
+    async getUserByEmail(email : string ) : Promise<any> {
+        try {
+            const user = await User.findOne({email});
+            return user;
         }
-        catch(err){
+        catch (err){
             throw err
         }
+    } 
+    async createUser(user: Partial<IUser>): Promise<boolean> {
+        try {     
+            const create : Partial<IUser> = { ...user }; 
 
+            if (user.password) {
+                create.password = bcrypt.hashSync(user.password, 10);
+            }
+            else {
+                create.password = null
+            }
+
+            const result = await User.create(create);
+
+            return result ? true : false ;
+        } catch (err) {
+            throw new Error(`Failed to create user: ${err}`);
+        }
     }
+    
 
-    async updateUser(email)
+    async updateUser(email: string, user: Partial<IUser>): Promise<boolean> {
+        try {
+            const update : Partial<IUser> = {...user};
+
+            if(user.password){
+                update.password = bcrypt.hashSync(user.password, 10);
+            }
+    
+            const result =  await User.findOneAndUpdate({ email }, update);
+
+            return result ? true : false ;
+            
+        } catch (err) {
+            throw err;
+        }
+    }
+    
 }
 export default new UserRepo();

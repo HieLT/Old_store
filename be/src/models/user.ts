@@ -6,18 +6,20 @@ export interface IUser {
     phone: string | null;
     firstname: string;
     lastname: string;
-    password: string;
+    password: string | null;
     address: string | null;
     avatar: string | null ;
     follower_ids: Schema.Types.ObjectId[];
     following_user_ids: Schema.Types.ObjectId[];
     is_delete: boolean;
+    is_google_account: boolean;
 };
 
 const User = new Schema<IUser>({
     email: {
         type: String ,
-        required: true
+        required: true , 
+        immutable : false
     },
     phone :{
         type: String ,
@@ -32,7 +34,7 @@ const User = new Schema<IUser>({
         required: true
     },
     password: {
-        type: String,
+        type: String ,
     },
     address: {
         type: String,
@@ -48,10 +50,16 @@ const User = new Schema<IUser>({
     following_user_ids: [{
         type: Schema.Types.ObjectId,
     }],
+    is_google_account: {
+        type: Boolean , 
+        default : false,
+        immutable: true
+    },
     is_delete: {
         type: Boolean,
         default: false,
-        select: false
+        select: false,
+
     }
 }, {
     timestamps: true

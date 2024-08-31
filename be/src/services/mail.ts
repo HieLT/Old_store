@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-class mail{
+class MailService{
   async sendMail (options:any){
     try{
       const transporter = nodemailer.createTransport({
@@ -30,4 +30,4 @@ class mail{
   };
 }
 
-export default new mail()
+export default new MailService()
