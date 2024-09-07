@@ -57,7 +57,7 @@ class AuthController {
             }
 
             const activationToken = createToken({ email, password , firstname, lastname }, '3d');
-            const activationUrl = `http://${fe_access}/verify-email/${activationToken}`;
+            const activationUrl = `${fe_access}/verify-email/${activationToken}`;
             const message = `Xin chào, vui lòng nhấp vào liên kết này để kích hoạt tài khoản của bạn: ${activationUrl}`;
             await sendEmail(email, "Xác nhận tài khoản của bạn", message, res);
         } catch (err) {
@@ -122,7 +122,7 @@ class AuthController {
             }
 
             const resetPasswordToken = createToken({ email }, '5m');
-            const resetPasswordUrl = `http://${fe_access}/reset-password?${resetPasswordToken}&${'5m'}`;
+            const resetPasswordUrl = `${fe_access}/reset-password?${resetPasswordToken}&${'5m'}`;
             const message = `Xin chào, vui lòng nhấp vào liên kết này để đặt lại mật khẩu của bạn: ${resetPasswordUrl}`;
 
             await sendEmail(email, "Đặt lại mật khẩu của bạn", message, res);
@@ -149,7 +149,16 @@ class AuthController {
                 if (err) {
                     return next(err);
                 }
-                return res.redirect('success');
+                const email = (user as { email: string }).email;
+                const token = createToken({email}, '1h'); 
+                
+                res.cookie('auth_token', token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'development', 
+                    sameSite: 'lax',
+                    maxAge: 3600000
+                });
+                return res.redirect(`${fe_access}`);
             });
         })(req, res, next);
     }
@@ -157,7 +166,7 @@ class AuthController {
     loginGoogleSuccess(req: Request, res: Response): void{
         const user = req.user
         const token = createToken({ user }, '1h');
-        user ? res.status(201).send({token, user}): res.status(403).send('Chưa đăng nhập') ;
+        user ? res.send({token, user}): res.status(403).send('Chưa đăng nhập') ;
     }
 
     loginGoogleFail(req: Request, res: Response): void{
@@ -175,7 +184,7 @@ class AuthController {
                     return res.status(500).send('Failed to destroy session.');
                 }
                 res.clearCookie('connect.sid');
-                res.redirect(`http://${fe_access}`);
+                res.redirect(`${fe_access}`);
             });
         });
     }

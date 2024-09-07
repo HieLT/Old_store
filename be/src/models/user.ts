@@ -19,7 +19,7 @@ const User = new Schema<IUser>({
     email: {
         type: String ,
         required: true , 
-        immutable : false
+        immutable : true
     },
     phone :{
         type: String ,

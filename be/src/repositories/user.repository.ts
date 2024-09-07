@@ -2,7 +2,7 @@ import User, { IUser } from "../models/user";
 import bcrypt from "bcrypt";
 
 class UserRepo {
-    async getUserByEmail(email : string ) : Promise<any> {
+    async getUserByEmail(email : any) : Promise<any> {
         try {
             const user = await User.findOne({email});
             return user;

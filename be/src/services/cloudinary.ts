@@ -43,7 +43,6 @@ class CloudinaryService {
             await cloudinary.uploader.destroy(public_id);
             console.log(`Deleted image with public_id: ${public_id}`);
         } catch (error) {
-            console.error(`Failed to delete image with public_id: ${public_id}`, error);
             throw error;
         }
     }
