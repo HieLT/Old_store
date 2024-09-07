@@ -9,6 +9,8 @@ import passport from "passport";
 
 config();
 
+const hostname = 'localhost';
+const port = 8080;
 const fe_access = process.env.fe_access;
 
 const app = express()
@@ -31,6 +33,6 @@ app.use(cors({
 }));
 
 route(app)
-app.listen(() => {
-    console.log(`Server running at ${fe_access}`);
+app.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}/`);
 });
