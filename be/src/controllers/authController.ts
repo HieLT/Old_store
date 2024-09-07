@@ -36,6 +36,17 @@ const sendEmail = async (email: string, subject: string, message: string, res: R
     }
 };
 
+const setAuthCookies = (res: Response, token: string, userProfile: any): void =>{
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'development',
+        sameSite: 'lax' as const,
+        maxAge: 3600000 
+    };
+    res.cookie('auth_token', token, cookieOptions);
+    res.cookie('user_profile', userProfile, cookieOptions);
+}
+
 class AuthController {
     async register(req: Request, res: Response): Promise<void> {
         try {
@@ -122,7 +133,7 @@ class AuthController {
             }
 
             const resetPasswordToken = createToken({ email }, '5m');
-            const resetPasswordUrl = `${fe_access}/reset-password?${resetPasswordToken}&${'5m'}`;
+            const resetPasswordUrl = `${fe_access}/reset-password?Token=${resetPasswordToken}&expired_within=${'300'}`;
             const message = `Xin chào, vui lòng nhấp vào liên kết này để đặt lại mật khẩu của bạn: ${resetPasswordUrl}`;
 
             await sendEmail(email, "Đặt lại mật khẩu của bạn", message, res);
@@ -151,13 +162,8 @@ class AuthController {
                 }
                 const email = (user as { email: string }).email;
                 const token = createToken({email}, '1h'); 
-                
-                res.cookie('auth_token', token, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'development', 
-                    sameSite: 'lax',
-                    maxAge: 3600000
-                });
+                const user_profile = UserRepo.getUserByEmail(email);
+                setAuthCookies(res, token, user_profile);
                 return res.redirect(`${fe_access}`);
             });
         })(req, res, next);

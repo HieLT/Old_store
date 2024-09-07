@@ -9,8 +9,7 @@ import passport from "passport";
 
 config();
 
-const hostname = 'localhost';
-const port = 8080;
+const fe_access = process.env.fe_access;
 
 const app = express()
 app.use(session({
@@ -26,12 +25,12 @@ connect();
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 app.use(cors({
-    origin: [`http://${process.env.fe_hostname}:${process.env.fe_port}`],
+    origin: [`${fe_access}`],
     methods: "GET,POST,PUT,DELETE",
     credentials: true,
 }));
 
 route(app)
-app.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+app.listen(() => {
+    console.log(`Server running at ${fe_access}`);
 });
