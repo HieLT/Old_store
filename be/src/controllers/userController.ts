@@ -1,8 +1,9 @@
-import path from 'path'; // Import the path module
+import path from 'path'; 
 import { Request, Response } from "express";
 import CloudinaryService from '../services/cloudinary'; 
 import UserRepo from "../repositories/user.repository";
-import { IUser } from "../models/user";
+import validatePassword from '../utils/validatePassword';
+import { IUser } from '../models/user';
 
 interface MulterRequest extends Request {
     files: Express.Multer.File[];
@@ -16,8 +17,12 @@ class UserController {
             const data = req.body;
             const user = req.user as IUser;
 
+            if (user.password && !validatePassword(user.password)) {
+                res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
+                return;
+            }
+
             if (files) {
-                console.log('files');
                 const oldAvatar = user.avatar;
                 if (oldAvatar) {
                     const publicId = `Old_store/user/${oldAvatar}`;
@@ -25,20 +30,18 @@ class UserController {
                 }
 
                 const images = files.map(file => {
-                    // Extract the base name without extension
                     const baseName = path.basename(file.originalname, path.extname(file.originalname));
                     return {
                         buffer: file.buffer,
-                        originalname: baseName // Set only the base name
+                        originalname: baseName 
                     };
                 });
 
                 const uploadResult = await CloudinaryService.uploadImages(images, 'Old_store/user');
-                
-                // Set data.avatar to the base name of the first image
+
                 data.avatar = images[0].originalname; 
             }
-            
+
             const result = await UserRepo.updateUser(user.email, data);
 
             result ? res.status(200).send('Cập nhật thành công') : res.status(400).send('Cập nhật thất bại');

@@ -6,14 +6,10 @@ import isNotDeleted from "../middlewares/isNotDeleted";
 
 const userRouter = express.Router();
 
-// PUT route for updating user data
-userRouter.put(
-  '/update',
-  [authentication, isNotDeleted, Multer.getUpload().array('files')],
-  userController.updateUser
-);
+userRouter.put('/update', [authentication, isNotDeleted, Multer.getUpload().array('files')], userController.updateUser);
 
-// GET route for serving the HTML form
+
+
 userRouter.get('/html', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -62,17 +58,16 @@ userRouter.get('/html', (req, res) => {
             const formData = new FormData(form);
 
             // Replace with your actual token
-            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxldGhhbmhoaWVwNDMwQGdtYWlsLmNvbSIsImlhdCI6MTcyNTM4MDI4OSwiZXhwIjoxNzI1MzgzODg5fQ.DWJaOqrW-_BNhKUPTEj96EKqIyqz5Gsi_i4GYHxEtrE';
+            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxldGhhbmhoaWVwNDMwQGdtYWlsLmNvbSIsImlhdCI6MTcyNTg1NTIxNywiZXhwIjoxNzI1ODU4ODE3fQ.YEXQaz9IFBZpCrjUzvSij1VkRGCl9BjdZIUojfcx_-A';
 
             try {
                 const response = await fetch('http://localhost:8080/user/update', {
                     method: 'PUT',
                     headers: {
-                        'Authorization': \`Bearer \${token}\`
+                        'Authorization': \`Bearer \${token}\`   
                     },
                     body: formData
                 });
-
                 if (response.ok) {
                     alert('Profile updated successfully');
                 } else {

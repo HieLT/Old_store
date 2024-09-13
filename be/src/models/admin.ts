@@ -4,7 +4,7 @@ export interface IAdmin {
     _id: Schema.Types.ObjectId;
     username: string;
     password: string;
-    role: "admin" | "superadmin"; 
+    role: "admin" | "super_admin"; 
     is_active: boolean;
     is_deleted: boolean;
 }
@@ -20,7 +20,7 @@ const Admin = new Schema<IAdmin>({
     },
     role: {
         type: String,
-        enum: ["admin", "superadmin"], 
+        enum: ["admin", "super_admin"], 
         default: "admin"
     },
     is_deleted: {

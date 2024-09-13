@@ -4,7 +4,7 @@ import { TokenExpiredError } from "jsonwebtoken";
 import validatePassword from "../utils/validatePassword";
 import UserRepo from "../repositories/user.repository";
 
-const secret = process.env.SECRET_KEY!;
+const secret = process.env.ACCESS_SECRET_KEY!;
 
 class emailVerifyController {
     async emailRegisterVerification(req: Request, res: Response): Promise<void> {
