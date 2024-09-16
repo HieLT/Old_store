@@ -29,18 +29,16 @@ class UserController {
         }
     }
 
-    async updateAvatar(req: Request, res: Response) : Promise<void> {
+    async updateAvatar(req: Request, res: Response): Promise<void> {
         const multerReq = req as MulterRequest;
         const user = req.user as IUser;
-        const files = multerReq.files;
-
-        if (files) {
-            const oldAvatar = user.avatar;
-            if (oldAvatar) {
-                const publicId = `Old_store/user/${oldAvatar}`;
-                await CloudinaryService.deleteImage(publicId);
-            }
-
+        const files = multerReq.files ;
+    
+        if (files.length > 0) {
+            const oldUrl = user.avatar;
+            if (oldUrl) CloudinaryService.deleteImage(oldUrl);
+   
+    
             const images = files.map(file => {
                 const baseName = path.basename(file.originalname, path.extname(file.originalname));
                 return {
@@ -48,18 +46,23 @@ class UserController {
                     originalname: baseName 
                 };
             });
-
-            const uploadResult = await CloudinaryService.uploadImages(images, 'Old_store/user');
-
-            const avatar = images[0].originalname; 
-            const result = await UserRepo.updateUser(user.email, {avatar});
-
-            result ? res.status(200).send('Cập nhật thành công') : res.status(400).send('Cập nhật thất bại');
-        }
-        else {
+    
+            CloudinaryService.uploadImages(images, 'Old_store/user').then(uploadResults => {
+                const avatarUrl = uploadResults[0];
+                console.log(avatarUrl);
+                UserRepo.updateUser(user.email, { avatar: avatarUrl }).catch(error => {
+                    console.error('Failed to update user with avatar URL:', error);
+                });
+            }).catch(error => {
+                console.error('Failed to upload images:', error);
+            });
+    
+            res.status(200).send('Cập nhật thành công, đang xử lý ảnh...');
+        } else {
             res.status(500).send('Không có ảnh upload');
         }
     }
+    
 }
 
 export default new UserController;

@@ -1,5 +1,15 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { buffer } from 'node:stream/consumers';
+
+function extractPublicIdFromUrl(url: string): string {
+    const urlParts = url.split('/');
+    console.log(urlParts);
+    
+    const fileName = urlParts[urlParts.length - 1];
+
+    
+    
+    return fileName;
+}
 
 class CloudinaryService {
     constructor() {
@@ -17,8 +27,6 @@ class CloudinaryService {
                     const uploadStream = cloudinary.uploader.upload_stream(
                         { folder, public_id: image.originalname.split('.')[0] },
                         (error, result) => {
-                     
-                            
                             if (error) return reject(error);
                             if (result && result.secure_url) {
                                 resolve(result.secure_url);
@@ -38,10 +46,15 @@ class CloudinaryService {
             throw error;
         }
     }
-    async deleteImage(public_id: string): Promise<void> {
+    async deleteImage(url: string): Promise<void> {
         try {
-            await cloudinary.uploader.destroy(public_id);
-            console.log(`Deleted image with public_id: ${public_id}`);
+            const publicId = extractPublicIdFromUrl(url)
+            console.log(publicId);
+            
+            const result = await cloudinary.uploader.destroy(publicId);
+            console.log(result);
+            
+
         } catch (error) {
             throw error;
         }
