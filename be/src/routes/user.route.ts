@@ -1,12 +1,13 @@
 import express from "express";
-import userController from "../controllers/userController";
+import userController from "../controllers/user.controller";
 import Multer from '../utils/multer';
 import authentication from "../middlewares/authentication";
 import isNotDeleted from "../middlewares/isNotDeleted";
 
 const userRouter = express.Router();
 
-userRouter.put('/update', [authentication, isNotDeleted, Multer.getUpload().array('files')], userController.updateUser);
+userRouter.patch('/update',[authentication, isNotDeleted], userController.updateUser);
+userRouter.patch('/update-avatar',[authentication, isNotDeleted, Multer.getUpload().array('files')], userController.updateAvatar);
 
 
 
@@ -58,7 +59,7 @@ userRouter.get('/html', (req, res) => {
             const formData = new FormData(form);
 
             // Replace with your actual token
-            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxldGhhbmhoaWVwNDMwQGdtYWlsLmNvbSIsImlhdCI6MTcyNTg1NTIxNywiZXhwIjoxNzI1ODU4ODE3fQ.YEXQaz9IFBZpCrjUzvSij1VkRGCl9BjdZIUojfcx_-A';
+            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxldGhhbmhoaWVwNDMwQGdtYWlsLmNvbSIsImlhdCI6MTcyNjQ1NjYyMiwiZXhwIjoxNzI2NDU3NTIyfQ.Cx-9lx7pwmGJbJUlysBQ3Lg5b0MnKJjJ4T16KdZkMd8';
 
             try {
                 const response = await fetch('http://localhost:8080/user/update', {

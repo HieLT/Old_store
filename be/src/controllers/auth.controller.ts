@@ -19,7 +19,7 @@ const createToken = (payload: object, expiresIn: string, secretKey: string): str
 
 const handleUserNotFoundOrDeleted = (res: Response, user: any): void => {
     if (!user) {
-        res.status(404).send('Email hoặc mật khẩu không chính xác');
+        res.status(404).send('Người dùng không tồn tại');
     } else if (user.is_delete) {
         res.status(403).send('Người dùng đã bị xóa, liên hệ quản trị viên để mở khóa');
     }
@@ -73,7 +73,7 @@ class AuthController {
             const message = `Xin chào, vui lòng nhấp vào liên kết này để kích hoạt tài khoản của bạn: ${activationUrl}`;
             await sendEmail(email, "Xác nhận tài khoản của bạn", message, res);
         } catch (err) {
-            res.status(400).send('Yêu cầu không hợp lệ');
+            res.status(500);
         }
     }
 
@@ -111,8 +111,8 @@ class AuthController {
             
             
             res.status(200).send({ accessToken, refeshToken , user: userDetails });
-        } catch (err : any) {
-            res.status(500).send({ message : err.name});
+        } catch (err) {
+            res.status(500);
         }
     }
 
@@ -134,7 +134,7 @@ class AuthController {
             if (err.name === 'JsonWebTokenError') {
                 return res.status(401).send({ message: 'refreshToken không hợp lệ' });
             }
-            res.status(500).send({ message : err.name})
+            res.status(500);
         }
     }
     async resetPassword(req: Request, res: Response): Promise<void> {
@@ -164,7 +164,7 @@ class AuthController {
 
             await sendEmail(email, "Đặt lại mật khẩu của bạn", message, res);
         } catch (err) {
-            res.status(400).send('Yêu cầu không hợp lệ');
+            res.status(500);
         }
     }
     

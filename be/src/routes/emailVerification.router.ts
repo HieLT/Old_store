@@ -1,8 +1,8 @@
 import express from "express";
-import emailVerifyController from "../controllers/emailVerifyController";
+import emailVerifyController from "../controllers/emailVerify.controller";
 const emailVerificationRouter = express.Router();
 
 emailVerificationRouter.post('/register', emailVerifyController.emailRegisterVerification);
-emailVerificationRouter.put('/reset-password' , emailVerifyController.emailResetPasswordVerification);
+emailVerificationRouter.patch('/reset-password' , emailVerifyController.emailResetPasswordVerification);
 
 export default emailVerificationRouter;
