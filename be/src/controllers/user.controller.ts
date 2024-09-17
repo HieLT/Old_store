@@ -49,7 +49,7 @@ class UserController {
     
             CloudinaryService.uploadImages(images, 'Old_store/user').then(uploadResults => {
                 const avatarUrl = uploadResults[0];
-                console.log(avatarUrl);
+                console.log('avatarUrl',avatarUrl);
                 UserRepo.updateUser(user.email, { avatar: avatarUrl }).catch(error => {
                     console.error('Failed to update user with avatar URL:', error);
                 });
