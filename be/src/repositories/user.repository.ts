@@ -47,6 +47,15 @@ class UserRepo {
             throw err;
         }
     }
-    
+    async deleteUser(email : string): Promise<boolean> {
+        try {
+            const result = await User.findByIdAndUpdate({email} ,  {is_deleted : true});
+
+            return result ? true : false ;
+            
+        } catch(err) {
+            throw err
+        }
+    }
 }
 export default new UserRepo();

@@ -33,7 +33,7 @@ class emailVerifyController {
             } else if (err.name === 'JsonWebTokenError') {
                 res.status(401).send('Token không hợp lệ');
             } else {
-                res.status(500).send('Yêu cầu không hợp lệ');
+                res.status(500);
             }
         }
     }
@@ -64,7 +64,7 @@ class emailVerifyController {
             } else if (err.name === 'JsonWebTokenError') {
                 res.status(401).send('Token không hợp lệ');
             } else {
-                res.status(500).send('Yêu cầu không hợp lệ');
+                res.status(500);
             }
         }
     }

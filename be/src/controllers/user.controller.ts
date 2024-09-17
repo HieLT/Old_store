@@ -8,12 +8,15 @@ import { IUser } from '../models/user';
 interface MulterRequest extends Request {
     files: Express.Multer.File[];
 }
+interface CustomRequest extends Request {
+    account?: any; 
+}
 
 class UserController {
-    async updateUser(req: Request, res: Response): Promise<void> {
+    async updateUser(req: CustomRequest, res: Response): Promise<void> {
         try {
             const data = req.body;
-            const user = req.user as IUser;
+            const user = req.account as IUser;
 
             if (user.password && !validatePassword(user.password)) {
                 res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
@@ -22,44 +25,49 @@ class UserController {
 
             const result = await UserRepo.updateUser(user.email, data);
 
-            result ? res.status(200).send('Cập nhật thành công') : res.status(400).send('Cập nhật thất bại');
+            result ? res.status(200): res.status(400).send('Cập nhật thất bại');
             
         } catch (error) {
-            res.status(500).send();
+            res.status(500);
         }
     }
 
-    async updateAvatar(req: Request, res: Response) : Promise<void> {
-        const multerReq = req as MulterRequest;
-        const user = req.user as IUser;
-        const files = multerReq.files;
-
-        if (files) {
-            const oldAvatar = user.avatar;
-            if (oldAvatar) {
-                const publicId = `Old_store/user/${oldAvatar}`;
-                await CloudinaryService.deleteImage(publicId);
+    async updateAvatar(req: CustomRequest, res: Response): Promise<void> {
+        try{
+            const multerReq = req as MulterRequest;
+            const user = req.account as IUser;
+            const files = multerReq.files ;
+        
+            if (files.length > 0) {
+                const oldUrl = user.avatar;
+                if (oldUrl) CloudinaryService.deleteImage(oldUrl);
+    
+                const images = files.map(file => {
+                    const baseName = path.basename(file.originalname, path.extname(file.originalname));
+                    return {
+                        buffer: file.buffer,
+                        originalname: baseName 
+                    };
+                });
+        
+                CloudinaryService.uploadImages(images, 'Old_store/user').then(uploadResults => {
+                    const avatarUrl = uploadResults[0];
+                    UserRepo.updateUser(user.email, { avatar: avatarUrl }).catch(error => {
+                        console.error(error);
+                    });
+                }).catch(error => {
+                    console.error(error);
+                });
+        
+                res.status(200);
+            } else {
+                res.status(400).send('Không có ảnh upload');
             }
-
-            const images = files.map(file => {
-                const baseName = path.basename(file.originalname, path.extname(file.originalname));
-                return {
-                    buffer: file.buffer,
-                    originalname: baseName 
-                };
-            });
-
-            const uploadResult = await CloudinaryService.uploadImages(images, 'Old_store/user');
-
-            const avatar = images[0].originalname; 
-            const result = await UserRepo.updateUser(user.email, {avatar});
-
-            result ? res.status(200).send('Cập nhật thành công') : res.status(400).send('Cập nhật thất bại');
-        }
-        else {
-            res.status(500).send('Không có ảnh upload');
+        } catch {
+            res.status(500);
         }
     }
+    
 }
 
 export default new UserController;

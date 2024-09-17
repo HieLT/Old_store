@@ -1,6 +1,10 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { buffer } from 'node:stream/consumers';
 
+const getPublicIdFromUrl = (url: string) => {
+    const parts = url.split('/');
+    const publicId = parts.slice(-3).join('/').split('.')[0]; 
+    return publicId;
+};
 class CloudinaryService {
     constructor() {
         cloudinary.config({ 
@@ -12,13 +16,11 @@ class CloudinaryService {
 
     async uploadImages(images: { buffer: Buffer; originalname: string }[], folder: string): Promise<string[]> {
         try {
-            const uploadPromises = images.map(image => 
+            const uploadPromises = images.map(image =>
                 new Promise<string>((resolve, reject) => {
                     const uploadStream = cloudinary.uploader.upload_stream(
-                        { folder, public_id: image.originalname.split('.')[0] },
+                        { folder },
                         (error, result) => {
-                     
-                            
                             if (error) return reject(error);
                             if (result && result.secure_url) {
                                 resolve(result.secure_url);
@@ -30,7 +32,7 @@ class CloudinaryService {
                     uploadStream.end(image.buffer);
                 })
             );
-
+    
             const results = await Promise.all(uploadPromises);
             return results;
         } catch (error) {
@@ -38,10 +40,15 @@ class CloudinaryService {
             throw error;
         }
     }
-    async deleteImage(public_id: string): Promise<void> {
+    async deleteImage(url: string): Promise<void> {
         try {
-            await cloudinary.uploader.destroy(public_id);
-            console.log(`Deleted image with public_id: ${public_id}`);
+            const publicId = `${getPublicIdFromUrl(url)}` 
+            console.log('publicId',publicId);
+            
+            const result = await cloudinary.uploader.destroy(publicId);
+            console.log(result);
+            
+
         } catch (error) {
             throw error;
         }
