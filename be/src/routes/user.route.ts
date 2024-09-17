@@ -59,7 +59,7 @@ userRouter.get('/html', (req, res) => {
             const formData = new FormData(form);
 
             // Replace with your actual token
-            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxldGhhbmhoaWVwNDMwQGdtYWlsLmNvbSIsImlhdCI6MTcyNjU0OTM2NSwiZXhwIjoxNzI2NTUwMjY1fQ.-vFT7SYVmUg9HTeMbpc10ZKlzRdavVCNW3olktxCVV4';
+            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxldGhhbmhoaWVwNDMwQGdtYWlsLmNvbSIsImlhdCI6MTcyNjU1MDkxNiwiZXhwIjoxNzI2NTUxODE2fQ.qa3Sc62Sny5pSX61NLQaPCSMwG_kpbCC7y2RFHzwqrY';
 
             try {
                 const response = await fetch('http://localhost:8080/user/update-avatar', {

@@ -2,25 +2,27 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { SignOptions, JwtPayload } from 'jsonwebtoken';
 import mail from "../services/mail";
 import UserRepo from "../repositories/user.repository";
+import AdminRepo from "../repositories/admin.repository";
 import bcrypt from "bcrypt";
 import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
 import passport from "../utils/passport";
+import { refreshToken } from "firebase-admin/app";
 
 
 const fe_access = process.env.FE_ACCESS ;
 const accessSecret = process.env.ACCESS_SECRET_KEY! ;
-const refeshSecret = process.env.REFRESH_SECRET_KEY! ;
+const refreshSecret = process.env.REFRESH_SECRET_KEY! ;
 
 const createToken = (payload: object, expiresIn: string, secretKey: string): string => {
     const options: SignOptions = { expiresIn };
     return jwt.sign(payload, secretKey, options);
 };
 
-const handleUserNotFoundOrDeleted = (res: Response, user: any): void => {
-    if (!user) {
+const handleUserNotFoundOrDeleted = (res: Response, account: any): void => {
+    if (!account) {
         res.status(404).send('Người dùng không tồn tại');
-    } else if (user.is_delete) {
+    } else if (account.is_delete) {
         res.status(403).send('Người dùng đã bị xóa, liên hệ quản trị viên để mở khóa');
     }
 };
@@ -79,7 +81,11 @@ class AuthController {
 
     async login(req: Request, res: Response): Promise<void> {
         try {
-            const { email, password } = req.body;
+            const { email, password, account_role } = req.body;
+            if ( !account_role ){
+                res.status(400).send('Thiếu account_role');
+                return;
+            }
             if(!email || !validateEmail.validate(email)){
                 res.status(400).send('Email không đáp ứng yêu cầu');
                 return;
@@ -90,27 +96,31 @@ class AuthController {
                 return;
             }
 
-            const user = await UserRepo.getUserByEmail(email);
-
-            if (!user || user.is_delete) {
-                handleUserNotFoundOrDeleted(res, user);
+            //accont_role :  admin or user 
+            let account ;
+            if ( account_role === 'user') account = await UserRepo.getUserByEmail(email) ;
+            else account = await AdminRepo.getAdminByEmail(email);
+            
+            if (!account || account.is_delete) {
+                handleUserNotFoundOrDeleted(res, account);
                 return;
             }
 
-            const isPasswordCorrect = await bcrypt.compare(password, user.password!);
+            const isPasswordCorrect = await bcrypt.compare(password, account.password!);
 
             if (!isPasswordCorrect) {
                 res.status(401).send('Email hoặc mật khẩu không chính xác');
                 return;
             }
-            const {  password: _,  ...userDetails } = user.toObject();
+            const {  password: _,  ...userDetails } = account.toObject();
 
-            console.log(accessSecret, refeshSecret);
-            const accessToken = createToken({ email }, '15m', accessSecret);
-            const refeshToken = createToken({ email }, '7d', refeshSecret);
+            const accessToken = createToken({ email , account_role}, '15m', accessSecret);
+            const refreshToken = createToken({ email , account_role}, '7d', refreshSecret);
             
+            res.cookie('accessToken' , accessToken);
+            res.cookie('refreshToken', refreshToken);
             
-            res.status(200).send({ accessToken, refeshToken , user: userDetails });
+            res.status(200).send({ accessToken, refreshToken , user: userDetails });
         } catch (err) {
             res.status(500);
         }
@@ -118,14 +128,18 @@ class AuthController {
 
     getNewAccessToken(req: Request, res: Response) {
         try {
-            const { refreshToken } = req.body;
-            const decoded = jwt.verify(refreshToken,refeshSecret) as JwtPayload;
+            const refreshToken = req.cookies.refreshToken;
+            const decoded = jwt.verify(refreshToken,refreshSecret) as JwtPayload;
             const email = decoded.email;
+            const account_role = decoded.account_role;
 
-            const newAccessToken = createToken({email}, '15m' , accessSecret);
-            const newRefreshToken = createToken({email} , '7d' , refeshSecret);
+            const newAccessToken = createToken({email, account_role}, '15m' , accessSecret);
+            const newRefreshToken = createToken({email} , '7d' , refreshSecret);
+
+            res.cookie('accessToken', newAccessToken);
+            res.cookie('refreshToken' , newRefreshToken);
             
-            res.status(200).send({newAccessToken, newRefreshToken});
+            res.status(200).send('Lấy access-token và refesh-token mới thành công');
 
         } catch (err : any) {
             if (err.name === 'TokenExpiredError') {
@@ -184,7 +198,7 @@ class AuthController {
             }
     
             const email = (user as { email: string }).email;
-            const token = createToken({ email }, '1h', accessSecret);
+            const token = createToken({ email, account_role:'user'}, '1h', accessSecret);
             
             const userProfile = await UserRepo.getUserByEmail(email);
             setAuthCookies(res, token, userProfile);

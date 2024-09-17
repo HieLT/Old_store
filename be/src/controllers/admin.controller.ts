@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import CloudinaryService from '../services/cloudinary'; 
 import UserRepo from "../repositories/user.repository";
 import validatePassword from '../utils/validatePassword';
-import { IUser } from '../models/user';
 
 interface MulterRequest extends Request {
     files: Express.Multer.File[];
@@ -13,10 +12,10 @@ interface CustomRequest extends Request {
 }
 
 class UserController {
-    async updateUser(req: CustomRequest, res: Response): Promise<void> {
+    async updateAdmin(req: Request, res: Response): Promise<void> {
         try {
             const data = req.body;
-            const user = req.account as IUser;
+            const admin = req.account as IUser;
 
             if (user.password && !validatePassword(user.password)) {
                 res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
@@ -32,9 +31,9 @@ class UserController {
         }
     }
 
-    async updateAvatar(req: CustomRequest, res: Response): Promise<void> {
+    async updateAvatar(req: Request, res: Response): Promise<void> {
         const multerReq = req as MulterRequest;
-        const user = req.account as IUser;
+        const user = req.user as IUser;
         const files = multerReq.files ;
     
         if (files.length > 0) {

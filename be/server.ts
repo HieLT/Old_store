@@ -3,6 +3,7 @@ import {config} from 'dotenv';
 import connect from './src/db/db';
 import route from "./src/routes/index.route"
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import passport from "passport";
 
@@ -14,6 +15,7 @@ const fe_access = process.env.fe_access;
 
 const app = express()
 
+app.use(cookieParser());
 app.use(passport.initialize());
 connect();
 app.use(bodyParser.json({ limit: "50mb" }));
