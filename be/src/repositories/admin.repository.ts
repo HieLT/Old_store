@@ -31,7 +31,7 @@ class AdminRepo {
         try {
             const update : Partial<IAdmin> = {...admin};
 
-            update.password = bcrypt.hashSync(admin.password!, 10);
+            if (admin.password) update.password = bcrypt.hashSync(admin.password!, 10);
             
             const result = await Admin.findOneAndUpdate({ email }, update);
 
@@ -41,6 +41,15 @@ class AdminRepo {
             throw err;
         }
     }
-    
+    async deleteAdmin(email:string): Promise<boolean> {
+        try {
+            const result = await Admin.findByIdAndUpdate({email} ,  {is_deleted : true});
+
+            return result ? true : false ;
+            
+        } catch(err) {
+            throw err
+        }
+    }
 }
 export default new AdminRepo();

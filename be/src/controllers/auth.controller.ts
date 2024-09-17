@@ -7,7 +7,6 @@ import bcrypt from "bcrypt";
 import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
 import passport from "../utils/passport";
-import { refreshToken } from "firebase-admin/app";
 
 
 const fe_access = process.env.FE_ACCESS ;
@@ -21,7 +20,7 @@ const createToken = (payload: object, expiresIn: string, secretKey: string): str
 
 const handleUserNotFoundOrDeleted = (res: Response, account: any): void => {
     if (!account) {
-        res.status(404).send('Người dùng không tồn tại');
+        res.status(401).send('Email hoặc mật khẩu không chính xác');
     } else if (account.is_delete) {
         res.status(403).send('Người dùng đã bị xóa, liên hệ quản trị viên để mở khóa');
     }
@@ -39,7 +38,7 @@ const sendEmail = async (email: string, subject: string, message: string, res: R
     }
 };
 
-const setAuthCookies = (res: Response, token: string, userProfile: any): void =>{
+const  setAuthCookies = (res: Response, token: string, userProfile: any): void =>{
     const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'development',
@@ -120,7 +119,7 @@ class AuthController {
             res.cookie('accessToken' , accessToken);
             res.cookie('refreshToken', refreshToken);
             
-            res.status(200).send({ accessToken, refreshToken , user: userDetails });
+            res.status(200).send({user: userDetails});
         } catch (err) {
             res.status(500);
         }
@@ -139,7 +138,7 @@ class AuthController {
             res.cookie('accessToken', newAccessToken);
             res.cookie('refreshToken' , newRefreshToken);
             
-            res.status(200).send('Lấy access-token và refesh-token mới thành công');
+            res.status(200);
 
         } catch (err : any) {
             if (err.name === 'TokenExpiredError') {

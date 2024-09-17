@@ -4,6 +4,10 @@ export interface IAdmin {
     _id: Schema.Types.ObjectId;
     email: string;
     password: string;
+    avatar : string;
+    phone : string;
+    firstname : string; 
+    lastname : string;
     role: "admin" | "super_admin"; 
     is_deleted: boolean;
 }
@@ -15,6 +19,22 @@ const Admin = new Schema<IAdmin>({
         immutable : true
     },
     password: {
+        type: String,
+        required: true
+    },
+    avatar: {
+        type: String,
+        default: null
+    },
+    phone :{
+        type: String ,
+        default: null
+    },
+    firstname: {
+        type: String,
+        required: true
+    },
+    lastname: {
         type: String,
         required: true
     },

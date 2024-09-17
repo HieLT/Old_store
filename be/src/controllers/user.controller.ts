@@ -25,42 +25,46 @@ class UserController {
 
             const result = await UserRepo.updateUser(user.email, data);
 
-            result ? res.status(200).send('Cập nhật thành công') : res.status(400).send('Cập nhật thất bại');
+            result ? res.status(200): res.status(400).send('Cập nhật thất bại');
             
         } catch (error) {
-            res.status(500).send();
+            res.status(500);
         }
     }
 
     async updateAvatar(req: CustomRequest, res: Response): Promise<void> {
-        const multerReq = req as MulterRequest;
-        const user = req.account as IUser;
-        const files = multerReq.files ;
+        try{
+            const multerReq = req as MulterRequest;
+            const user = req.account as IUser;
+            const files = multerReq.files ;
+        
+            if (files.length > 0) {
+                const oldUrl = user.avatar;
+                if (oldUrl) CloudinaryService.deleteImage(oldUrl);
     
-        if (files.length > 0) {
-            const oldUrl = user.avatar;
-            if (oldUrl) CloudinaryService.deleteImage(oldUrl);
-
-            const images = files.map(file => {
-                const baseName = path.basename(file.originalname, path.extname(file.originalname));
-                return {
-                    buffer: file.buffer,
-                    originalname: baseName 
-                };
-            });
-    
-            CloudinaryService.uploadImages(images, 'Old_store/user').then(uploadResults => {
-                const avatarUrl = uploadResults[0];
-                UserRepo.updateUser(user.email, { avatar: avatarUrl }).catch(error => {
+                const images = files.map(file => {
+                    const baseName = path.basename(file.originalname, path.extname(file.originalname));
+                    return {
+                        buffer: file.buffer,
+                        originalname: baseName 
+                    };
+                });
+        
+                CloudinaryService.uploadImages(images, 'Old_store/user').then(uploadResults => {
+                    const avatarUrl = uploadResults[0];
+                    UserRepo.updateUser(user.email, { avatar: avatarUrl }).catch(error => {
+                        console.error(error);
+                    });
+                }).catch(error => {
                     console.error(error);
                 });
-            }).catch(error => {
-                console.error(error);
-            });
-    
-            res.status(200).send('Cập nhật thành công, đang xử lý ảnh...');
-        } else {
-            res.status(500).send('Không có ảnh upload');
+        
+                res.status(200);
+            } else {
+                res.status(400).send('Không có ảnh upload');
+            }
+        } catch {
+            res.status(500);
         }
     }
     

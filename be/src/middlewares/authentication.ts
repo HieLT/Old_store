@@ -3,9 +3,8 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import UserRepo from "../repositories/user.repository";
 import AdminRepo from "../repositories/admin.repository";
 
-// Extend Express Request interface locally
 interface CustomRequest extends Request {
-    account?: any;  // Adjust 'any' to your actual User/Admin type if necessary
+    account?: any;  
 }
 
 const accessSecret = process.env.ACCESS_SECRET_KEY!;

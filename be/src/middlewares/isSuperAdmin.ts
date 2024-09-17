@@ -1,9 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import { IAdmin } from "../models/admin";
-const isSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
+
+interface CustomRequest extends Request {
+    account?: any;  
+}
+
+const isSuperAdmin = (req: CustomRequest, res: Response, next: NextFunction) => {
     try {
-        const user = req.user as IAdmin;
-        if (user.role === 'super_admin') return next();
+        const accont = req.account as IAdmin;
+        if (accont.role === 'super_admin') return next();
 
         return res.status(403).send('Tài khoản đã bị khóa, vui lòng liên hệ admin để mở khóa');
             
