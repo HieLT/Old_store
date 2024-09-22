@@ -5,6 +5,7 @@ import AdminRepo from '../repositories/admin.repository';
 import UserRepo from '../repositories/user.repository';
 import validatePassword from '../utils/validatePassword';
 import validateEmail from "email-validator";
+import { IAdmin } from '../models/admin';
 
 interface MulterRequest extends Request {
     files: Express.Multer.File[];
@@ -13,7 +14,25 @@ interface CustomRequest extends Request {
     account?: any; 
 }
 
+
 class AdminController {
+    async getProfile(req: CustomRequest, res: Response) :Promise<void> {
+        try{
+            const admin = req.account as IAdmin;
+            res.status(200).send({admin});
+        } catch{
+            res.status(500);
+        }
+    }
+    async searchAdmin(req: Request, res: Response): Promise<void> {
+        try{
+            const{ searchKey, page , limit } = req.body;
+            const admins = await AdminRepo.searchAdmin(searchKey,page,limit) ;
+            res.status(200).send({admins})
+        } catch {
+            res.status(500);
+        }
+    }
     async updateAdmin(req: CustomRequest, res: Response): Promise<void> {
         try {
             const data = req.body;
@@ -124,6 +143,7 @@ class AdminController {
             res.send(500)
         }
     }
+    
 }
 
 export default new AdminController;

@@ -6,6 +6,7 @@ import isNotDeleted from "../middlewares/isNotDeleted";
 
 const userRouter = express.Router();
 
+userRouter.get('/get-profile',[authentication, isNotDeleted], userController.getProfile);
 userRouter.patch('/update',[authentication, isNotDeleted], userController.updateUser);
 userRouter.patch('/update-avatar',[authentication, isNotDeleted, Multer.getUpload().array('files')], userController.updateAvatar);
 

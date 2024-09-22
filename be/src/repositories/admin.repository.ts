@@ -8,9 +8,32 @@ class AdminRepo {
             return admin;
         }
         catch (err){
-            throw err
+            throw err;
         }
     } 
+    async searchAdmin(
+        searchKey: string,
+        page: number = 1,
+        limit: number = 10 
+    ):Promise<IAdmin[]> {
+        try{
+            const searchQuery= {
+                role: 'admin',
+                $or: [
+                    { firstname: { $regex: searchKey, $options: 'i' } },
+                    { lastname: { $regex: searchKey, $options: 'i' } },
+                ]
+            }
+            const admins = await Admin
+                .find(searchQuery)
+                .skip((page - 1) * limit) 
+                .limit(limit) // Limit number of documents per page
+                .exec();
+            return admins;
+        } catch(err) {
+            throw err;
+        }
+    }
     async createAdmin(admin: Partial<IAdmin>): Promise<boolean> {
         try {     
             const create : Partial<IAdmin> = { ...admin }; 

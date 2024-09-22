@@ -11,6 +11,7 @@ adminRouter.patch('/update',[authentication, isNotDeleted], adminController.upda
 adminRouter.patch('/update-avatar',[authentication, isNotDeleted, Multer.getUpload().array('files')], adminController.updateAvatar);
 adminRouter.post('/create', [authentication, isNotDeleted, isSuperAdmin], adminController.createAdmin);
 adminRouter.put('/delete-admin', [authentication, isNotDeleted, isSuperAdmin], adminController.deleteAdmin);
-adminRouter.put('/delete-user', [authentication, isNotDeleted, isAdmin], adminController.deleteUser)
+adminRouter.put('/delete-user', [authentication, isNotDeleted, isAdmin], adminController.deleteUser);
+adminRouter.post('get-admins', [authentication,isNotDeleted,isSuperAdmin], adminController.searchAdmin);
 
 export default adminRouter;
