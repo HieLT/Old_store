@@ -55,7 +55,7 @@ class emailVerifyController {
                 return
             }
 
-            const result = await UserRepo.updateUser(email, { password : resetPassword});
+            const result = await UserRepo.updateUser(String(user._id), { password : resetPassword});
 
             result ? res.status(200).send('Mật khẩu đã được thay đổi') : res.status(400).send('Thay đổi mật khẩu thất bại');
         } catch (err: any) {

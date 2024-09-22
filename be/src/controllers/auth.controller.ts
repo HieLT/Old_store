@@ -116,10 +116,10 @@ class AuthController {
             const accessToken = createToken({ email , account_role}, '15m', accessSecret);
             const refreshToken = createToken({ email , account_role}, '7d', refreshSecret);
             
-            res.cookie('accessToken' , accessToken);
-            res.cookie('refreshToken', refreshToken);
-            
-            res.status(200).send({user: userDetails});
+            res.status(200).send({
+                access_token: accessToken ,
+                refresh_token: refreshToken
+            });
         } catch (err) {
             res.status(500);
         }

@@ -8,7 +8,7 @@ class UserRepo {
             return user;
         }
         catch (err){
-            throw err
+            throw err;
         }
     } 
     async createUser(user: Partial<IUser>): Promise<boolean> {
@@ -26,12 +26,12 @@ class UserRepo {
 
             return result ? true : false ;
         } catch (err) {
-            throw new Error(`Failed to create user: ${err}`);
+            throw err;
         }
     }
     
 
-    async updateUser(email: string, user: Partial<IUser>): Promise<boolean> {
+    async updateUser(id: string, user: Partial<IUser>): Promise<boolean> {
         try {
             const update : Partial<IUser> = {...user};
 
@@ -39,7 +39,7 @@ class UserRepo {
                 update.password = bcrypt.hashSync(user.password, 10);
             }
     
-            const result =  await User.findOneAndUpdate({ email }, update);
+            const result =  await User.findOneAndUpdate({ _id: id }, update);
 
             return result ? true : false ;
             
@@ -47,14 +47,24 @@ class UserRepo {
             throw err;
         }
     }
-    async deleteUser(email : string): Promise<boolean> {
+    async deleteUser(id : string): Promise<boolean> {
         try {
-            const result = await User.findByIdAndUpdate({email} ,  {is_deleted : true});
+            const result = await User.findByIdAndUpdate({_id: id},  {is_deleted : true});
 
             return result ? true : false ;
             
         } catch(err) {
-            throw err
+            throw err;
+        }
+    }
+    async restoreUser(id : string): Promise<boolean> {
+        try {
+            const result = await User.findByIdAndUpdate({_id: id} ,  {is_deleted : false});
+
+            return result ? true : false ;
+            
+        } catch(err) {
+            throw err;
         }
     }
 }

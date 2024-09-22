@@ -16,6 +16,7 @@ const fe_access = process.env.fe_access;
 const app = express()
 
 app.use(cookieParser());
+app.use(express.json());
 app.use(passport.initialize());
 connect();
 app.use(bodyParser.json({ limit: "50mb" }));

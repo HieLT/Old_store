@@ -17,15 +17,18 @@ class UserController {
         try {
             const data = req.body;
             const user = req.account as IUser;
+            console.log(user);
+            
 
             if (user.password && !validatePassword(user.password)) {
                 res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
                 return;
             }
 
-            const result = await UserRepo.updateUser(user.email, data);
+            const result = await UserRepo.updateUser(String(user._id), data);
 
-            result ? res.status(200): res.status(400).send('Cập nhật thất bại');
+            result ? res.status(200).send('Cập nhật user thành công') 
+            : res.status(400).send('Cập nhật thất bại');
             
         } catch (error) {
             res.status(500);
@@ -52,14 +55,14 @@ class UserController {
         
                 CloudinaryService.uploadImages(images, 'Old_store/user').then(uploadResults => {
                     const avatarUrl = uploadResults[0];
-                    UserRepo.updateUser(user.email, { avatar: avatarUrl }).catch(error => {
+                    UserRepo.updateUser(String(user._id), { avatar: avatarUrl }).catch(error => {
                         console.error(error);
                     });
                 }).catch(error => {
                     console.error(error);
                 });
         
-                res.status(200);
+                res.status(200).send('Upload ảnh thành công');
             } else {
                 res.status(400).send('Không có ảnh upload');
             }

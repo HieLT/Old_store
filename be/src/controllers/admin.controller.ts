@@ -13,17 +13,17 @@ interface CustomRequest extends Request {
     account?: any; 
 }
 
-class UserController {
+class AdminController {
     async updateAdmin(req: CustomRequest, res: Response): Promise<void> {
         try {
             const data = req.body;
-            const admin = req.account ;
+            const admin = req.account;
             if (admin.password && !validatePassword(admin.password)) {
                 res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
                 return;
             }
 
-            const result = await AdminRepo.updateAdmin(admin.email, data);
+            const result = await AdminRepo.updateAdmin(admin._id, data);
 
             result ? res.status(200).send('Cập nhật thành công') : res.status(400).send('Cập nhật thất bại');
             
@@ -52,7 +52,7 @@ class UserController {
         
                 CloudinaryService.uploadImages(images, 'Old_store/user').then(uploadResults => {
                     const avatarUrl = uploadResults[0];
-                    AdminRepo.updateAdmin(admin.email, { avatar: avatarUrl }).catch(error => {
+                    AdminRepo.updateAdmin(admin._id, { avatar: avatarUrl }).catch(error => {
                         console.error(error);
                     });
                 }).catch(error => {
@@ -90,7 +90,8 @@ class UserController {
         }
 
         const result = await AdminRepo.createAdmin(newAdmin);
-        result ? res.status(201) : res.status(400).send('Tạo mới admin không thành công');
+        result ? res.status(201).send('Thêm mới admin thành công') 
+        : res.status(400).send('Tạo mới admin không thành công');
         } catch{
             res.status(500)
         } 
@@ -125,4 +126,4 @@ class UserController {
     }
 }
 
-export default new UserController;
+export default new AdminController;

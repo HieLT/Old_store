@@ -27,13 +27,13 @@ class AdminRepo {
     }
     
 
-    async updateAdmin(email: string, admin: Partial<IAdmin>): Promise<boolean> {
+    async updateAdmin(id: string, admin: Partial<IAdmin>): Promise<boolean> {
         try {
             const update : Partial<IAdmin> = {...admin};
 
             if (admin.password) update.password = bcrypt.hashSync(admin.password!, 10);
             
-            const result = await Admin.findOneAndUpdate({ email }, update);
+            const result = await Admin.findOneAndUpdate({ _id: id }, update);
 
             return result ? true : false ;
             
@@ -41,9 +41,19 @@ class AdminRepo {
             throw err;
         }
     }
-    async deleteAdmin(email:string): Promise<boolean> {
+    async deleteAdmin(id:string): Promise<boolean> {
         try {
-            const result = await Admin.findByIdAndUpdate({email} ,  {is_deleted : true});
+            const result = await Admin.findByIdAndUpdate({_id: id} ,  {is_deleted : true});
+
+            return result ? true : false ;
+            
+        } catch(err) {
+            throw err
+        }
+    }
+    async restoreAdmin(id:string): Promise<boolean> {
+        try {
+            const result = await Admin.findByIdAndUpdate({_id: id} ,  {is_deleted : false});
 
             return result ? true : false ;
             
