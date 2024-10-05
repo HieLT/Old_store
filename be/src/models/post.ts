@@ -3,7 +3,7 @@ import { model, Schema } from "mongoose";
 export interface IPost {
     _id: Schema.Types.ObjectId;
     poster_id: Schema.Types.ObjectId;
-    product_id: Schema.Types.ObjectId;
+    product_id: Schema.Types.ObjectId | null;
     status: 'Pending'|'Approved'|'Rejected'|'Hidden'|'Draft'|'Done'|'Expired';
     draft_product: JSON;
     location: string
@@ -17,7 +17,8 @@ const Post = new Schema<IPost>({
     },
     product_id: {
         type: Schema.Types.ObjectId,
-        ref: 'Product'
+        ref: 'Product',
+        default: null
     },
     status: {
         type: String,

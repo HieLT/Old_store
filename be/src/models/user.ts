@@ -11,7 +11,7 @@ export interface IUser {
     avatar: string | null ;
     follower_ids: Schema.Types.ObjectId[];
     following_user_ids: Schema.Types.ObjectId[];
-    is_delete: boolean;
+    is_deleted: boolean;
     is_google_account: boolean;
 };
 
@@ -55,11 +55,9 @@ const User = new Schema<IUser>({
         default : false,
         immutable: true
     },
-    is_delete: {
+    is_deleted: {
         type: Boolean,
         default: false,
-        select: false,
-
     }
 }, {
     timestamps: true

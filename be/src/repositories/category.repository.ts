@@ -1,8 +1,7 @@
 import Category, { ICategory } from "../models/category";
-import bcrypt from "bcrypt";
 
-class AdminRepo {
-    async getCategory():Promise<boolean>{
+class CategoryRepo {
+    async getAllCategory():Promise<boolean>{
         try {
             const result = await Category.find();
 
@@ -10,6 +9,16 @@ class AdminRepo {
         } catch(err) {
             throw err;
         }
+    }
+    
+    async getCategoryById(categoryId:string): Promise<ICategory | null> {
+        try{
+            const result = await Category.findById(categoryId);
+            return result;
+        } catch(err) {
+            throw err;
+        }
+         
     }
     async createCategory(category: Partial<ICategory>): Promise<boolean> {
         try {     
@@ -35,18 +44,18 @@ class AdminRepo {
             throw err;
         }
     }
-    async deleteCategory(id: string) :Promise<boolean> {
+    async deleteCategory(categoryId: string) :Promise<boolean> {
         try{
-            const result = await Category.findOneAndUpdate({_id : id}, {is_deleted : true });
+            const result = await Category.findOneAndUpdate({_id : categoryId}, {is_deleted : true });
 
             return result ? true : false;
         } catch(err) {
             throw err;
         }
     }
-    async restoreCategory(id: string): Promise<boolean> {
+    async restoreCategory(categoryId: string): Promise<boolean> {
         try{
-            const result = await Category.findOneAndUpdate({_id : id}, {is_deleted : false });
+            const result = await Category.findOneAndUpdate({_id : categoryId}, {is_deleted : false });
 
             return result ? true : false;
         } catch(err) {
@@ -54,4 +63,4 @@ class AdminRepo {
         }
     }
 }
-export default new AdminRepo();
+export default new CategoryRepo();

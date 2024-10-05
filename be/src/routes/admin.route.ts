@@ -7,7 +7,8 @@ import isAdmin from "../middlewares/isAdmin";
 import isSuperAdmin from "../middlewares/isSuperAdmin";
 const adminRouter = express.Router();
 
-adminRouter.patch('/update',[authentication, isNotDeleted], adminController.updateAdmin);
+adminRouter.get('./get-profile', [authentication, isNotDeleted], adminController.getProfile);
+adminRouter.patch('/update',[authentication, isNotDeleted, isAdmin], adminController.updateAdmin);
 adminRouter.patch('/update-avatar',[authentication, isNotDeleted, Multer.getUpload().array('files')], adminController.updateAvatar);
 adminRouter.post('/create', [authentication, isNotDeleted, isSuperAdmin], adminController.createAdmin);
 adminRouter.put('/delete-admin', [authentication, isNotDeleted, isSuperAdmin], adminController.deleteAdmin);

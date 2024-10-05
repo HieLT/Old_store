@@ -2,21 +2,24 @@ import { v2 as cloudinary } from 'cloudinary';
 
 const getPublicIdFromUrl = (url: string) => {
     const parts = url.split('/');
-    const publicId = parts.slice(-3).join('/').split('.')[0]; 
+    const publicId = parts.slice(-3).join('/').split('.')[0];
     return publicId;
 };
 class CloudinaryService {
     constructor() {
-        cloudinary.config({ 
-            cloud_name: process.env.CLOUDINARY_NAME, 
-            api_key: process.env.CLOUDINARY_KEY, 
-            api_secret: process.env.CLOUDINARY_API_SECRET_KEY 
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_NAME,
+            api_key: process.env.CLOUDINARY_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET_KEY
         });
     }
 
-    async uploadImages(images: { buffer: Buffer; originalname: string }[], folder: string): Promise<string[]> {
+    async uploadImages(images: { buffer: Buffer } | { buffer: Buffer }[], folder: string): Promise<string[]> {
         try {
-            const uploadPromises = images.map(image =>
+            // Ensure images is always an array
+            const uploadImages = Array.isArray(images) ? images : [images];
+            
+            const uploadPromises = uploadImages.map(image =>
                 new Promise<string>((resolve, reject) => {
                     const uploadStream = cloudinary.uploader.upload_stream(
                         { folder },
@@ -32,7 +35,7 @@ class CloudinaryService {
                     uploadStream.end(image.buffer);
                 })
             );
-    
+
             const results = await Promise.all(uploadPromises);
             return results;
         } catch (error) {
@@ -42,12 +45,12 @@ class CloudinaryService {
     }
     async deleteImage(url: string): Promise<void> {
         try {
-            const publicId = `${getPublicIdFromUrl(url)}` 
-            console.log('publicId',publicId);
-            
+            const publicId = `${getPublicIdFromUrl(url)}`
+            console.log('publicId', publicId);
+
             const result = await cloudinary.uploader.destroy(publicId);
             console.log(result);
-            
+
 
         } catch (error) {
             throw error;

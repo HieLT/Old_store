@@ -1,14 +1,14 @@
-import { model, Schema } from "mongoose";
+import { model, Schema, Document } from "mongoose";
 
-export interface ICategory {
+export interface ICategory extends Document {
     _id: Schema.Types.ObjectId;
     name: string;
-    description: string ;
-    attributes: Object;
-    is_deletde : boolean ;
+    description?: string;  
+    attributes: string[];  
+    is_deleted: boolean;
 }
 
-const Category = new Schema<ICategory>({
+const CategorySchema = new Schema<ICategory>({
      name: {
           type: String,
           required: true
@@ -17,16 +17,16 @@ const Category = new Schema<ICategory>({
           type: String
      },
      attributes: {
-          type: Object,
+          type: [String],  
           required: true,
           validate: {
                validator: function(v: any) {
-                   return typeof v === 'object'&& !Array.isArray(v) && Object.keys(v).length > 0;
+                   return Array.isArray(v) && v.length > 0;  // Ensure it's a non-empty array
                },
-               message: 'Attributes must be a non-empty object'
+               message: 'Attributes must be a non-empty array of strings'
            }
      },
-     is_deletde: {
+     is_deleted: {  
           type: Boolean,
           default: false
      }
@@ -34,4 +34,4 @@ const Category = new Schema<ICategory>({
     timestamps: true
 });
 
-export default model<ICategory>('Category', Category);
+export default model<ICategory>('Category', CategorySchema);

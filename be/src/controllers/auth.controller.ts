@@ -8,6 +8,10 @@ import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
 import passport from "../utils/passport";
 
+interface CustomRequest extends Request {
+    account?: any;  
+}
+
 
 const fe_access = process.env.FE_ACCESS ;
 const accessSecret = process.env.ACCESS_SECRET_KEY! ;
@@ -111,7 +115,6 @@ class AuthController {
                 res.status(401).send('Email hoặc mật khẩu không chính xác');
                 return;
             }
-            const {  password: _,  ...userDetails } = account.toObject();
 
             const accessToken = createToken({ email , account_role}, '15m', accessSecret);
             const refreshToken = createToken({ email , account_role}, '7d', refreshSecret);
@@ -124,19 +127,50 @@ class AuthController {
             res.status(500);
         }
     }
+    async changePassWord(req: CustomRequest, res: Response) : Promise<void> {
+        try{
+            const {oldPassword, newPassword, confirmPassword} = req.body;
+            const account = req.account;
+
+            if (!validatePassword(newPassword)){
+                res.status(400).send('Email không đáp ứng yêu cầu');
+                return;
+            }
+
+            if(newPassword !== confirmPassword ){
+                res.status(400).send('Mật khẩu xác nhận không trùng khớp');
+                return;
+            }
+
+            const isPasswordCorrect = await bcrypt.compare(oldPassword, account.password!);
+            if (!isPasswordCorrect) {
+                res.status(401).send('Mật khẩu không chính xác');
+                return;
+            }
+
+            if ( account.account_role === 'user') await UserRepo.updateUser(account.account_id, {password : newPassword});
+            else await AdminRepo.updateAdmin(account.account_id, {password : newPassword});
+
+            res.status(200);
+        } catch{
+            res.status(500);
+        }
+    }
 
     getNewAccessToken(req: Request, res: Response) {
         try {
-            const refreshToken = req.cookies.refreshToken;
+            const { refreshToken } = req.body;
             const decoded = jwt.verify(refreshToken,refreshSecret) as JwtPayload;
             const email = decoded.email;
             const account_role = decoded.account_role;
 
             const newAccessToken = createToken({email, account_role}, '15m' , accessSecret);
-            const newRefreshToken = createToken({email} , '7d' , refreshSecret);
+            const newRefreshToken = createToken({email, account_role} , '7d' , refreshSecret);
 
-            res.cookie('accessToken', newAccessToken);
-            res.cookie('refreshToken' , newRefreshToken);
+            res.status(200).send({
+                access_token: newAccessToken,
+                refresh_token: newRefreshToken
+            })
             
             res.status(200);
 

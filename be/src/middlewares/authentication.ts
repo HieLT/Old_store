@@ -24,7 +24,7 @@ const authentication = async (req: CustomRequest, res: Response, next: NextFunct
         } else {
             req.account = await AdminRepo.getAdminByEmail(email);
         }
-
+        req.account.account_role = account_role;
         next();
     } catch (err: any) {
         if (err.name === 'TokenExpiredError') {

@@ -29,9 +29,9 @@ class CategoryController {
     }
     async updateCategory(req: Request, res: Response): Promise<void> {
         try{
-            const { id } = req.body;
+            const { categoryId } = req.body;
 
-            const result = await CateRepo.deleteCategory(id);
+            const result = await CateRepo.deleteCategory(categoryId);
             
             result ? res.status(200).send('Xóa thành công')
             : res.status(400);
@@ -42,9 +42,9 @@ class CategoryController {
     }
     async restoreCategory(req: Request, res: Response): Promise<void> {
         try{
-            const { id } = req.body;
+            const {categoryId} = req.body;
 
-            const result = await CateRepo.restoreCategory(id);
+            const result = await CateRepo.restoreCategory(categoryId);
             
             result ? res.status(200).send('Khôi phục thành công')
             : res.status(400);

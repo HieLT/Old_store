@@ -64,9 +64,9 @@ class AdminRepo {
             throw err;
         }
     }
-    async deleteAdmin(id:string): Promise<boolean> {
+    async deleteAdmin(adminId:string): Promise<boolean> {
         try {
-            const result = await Admin.findByIdAndUpdate({_id: id} ,  {is_deleted : true});
+            const result = await Admin.findByIdAndUpdate({_id: adminId} ,  {is_deleted : true});
 
             return result ? true : false ;
             
@@ -74,9 +74,9 @@ class AdminRepo {
             throw err
         }
     }
-    async restoreAdmin(id:string): Promise<boolean> {
+    async restoreAdmin(adminId:string): Promise<boolean> {
         try {
-            const result = await Admin.findByIdAndUpdate({_id: id} ,  {is_deleted : false});
+            const result = await Admin.findByIdAndUpdate({_id: adminId} ,  {is_deleted : false});
 
             return result ? true : false ;
             

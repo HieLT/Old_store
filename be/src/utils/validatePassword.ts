@@ -13,7 +13,7 @@ passwordSchema
 
 const validatePassword = (inputPassword: string): boolean => {
     if (isNull(inputPassword)) return false; 
-    const result = passwordSchema.validate(inputPassword);
+    const result = passwordSchema.validate(inputPassword);    
     return Array.isArray(result) ? result.length === 0 : result === true; // length =0 : false
 };
 

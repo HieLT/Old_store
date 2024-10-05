@@ -1,18 +1,18 @@
-import { model, Schema } from "mongoose";
+import { model, Schema, Document } from "mongoose";
 
-export interface IProduct {
+export interface IProduct extends Document {  
     _id: Schema.Types.ObjectId;
     name: string;
-    description: string;
-    is_deletde : boolean;
-    images: string;
-    price: number;
+    description?: string;  
+    images: string[]; 
+    attributes: Map<string, any>; 
+    price?: number;
     condition: 'New' | 'Used' | 'Like New';
     category_id: Schema.Types.ObjectId;
-    is_deleted: boolean
 }
 
-const Product = new Schema<IProduct>({
+
+const ProductSchema = new Schema<IProduct>({
     name: {
         type: String,
         required: true
@@ -21,22 +21,29 @@ const Product = new Schema<IProduct>({
         type: String
     },
     images: {
-        type: String,
+        type: [String],  
         required: true
+    },
+    attributes: {
+        type: Map,
+        of: Schema.Types.Mixed, 
+        required: true,
     },
     price: {
         type: Number
     },
     condition: {
         type: String,
-        enum: ["New","Used","Like New"],
+        enum: ["New", "Used", "Like New"],
+        required: true
     },
-    is_deleted: {
-        type: Boolean,
-        default: false
+    category_id: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'Category'
     }
 }, {
     timestamps: true
 });
 
-export default model<IProduct>('Product', Product);
+export default model<IProduct>('Product', ProductSchema);
