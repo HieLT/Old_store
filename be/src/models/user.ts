@@ -34,10 +34,10 @@ const User = new Schema<IUser>({
         required: true
     },
     password: {
-        type: String ,
+        type: String,
     },
     address: {
-        type: String,
+        type: Object,
         default: null
     },
     avatar: {
