@@ -1,4 +1,3 @@
-import path from 'path';
 import { Request, Response } from "express";
 import CloudinaryService from '../services/cloudinary';
 import UserRepo from "../repositories/user.repository";
@@ -42,10 +41,12 @@ class UserController {
                 res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
                 return;
             }
+
             if ('is_deleted' in update) {
                 res.status(403).send('Không có quyền truy cập');
                 return;
             }
+
             const result = await UserRepo.updateUser(String(user._id), update);
 
             result ? res.status(200).send('Cập nhật user thành công')

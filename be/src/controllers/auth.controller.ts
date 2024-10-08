@@ -129,29 +129,24 @@ class AuthController {
     }
     async changePassWord(req: CustomRequest, res: Response) : Promise<void> {
         try{
-            const {oldPassword, newPassword, confirmPassword} = req.body;
+            const {oldPassword, newPassword} = req.body;
             const account = req.account;
 
             if (!validatePassword(newPassword)){
-                res.status(400).send('Email không đáp ứng yêu cầu');
-                return;
-            }
-
-            if(newPassword !== confirmPassword ){
-                res.status(400).send('Mật khẩu xác nhận không trùng khớp');
+                res.status(400).send('Mật khẩu mới không đáp ứng yêu cầu');
                 return;
             }
 
             const isPasswordCorrect = await bcrypt.compare(oldPassword, account.password!);
             if (!isPasswordCorrect) {
-                res.status(401).send('Mật khẩu không chính xác');
+                res.status(400).send('Mật khẩu không chính xác');
                 return;
             }
-
-            if ( account.account_role === 'user') await UserRepo.updateUser(account.account_id, {password : newPassword});
-            else await AdminRepo.updateAdmin(account.account_id, {password : newPassword});
-
-            res.status(200);
+            
+            if ( account.account_role === 'user') await UserRepo.updateUser(account._id, {password : newPassword});
+            else await AdminRepo.updateAdmin(account._id, {password : newPassword});
+            
+            res.status(200).send('Cập nhật thành công');
         } catch{
             res.status(500);
         }

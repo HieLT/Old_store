@@ -6,8 +6,17 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import passport from "passport";
+// import { createClient } from 'redis';
+
+// const client = createClient();
+
+// client.on('error', err => console.log('Redis Client Error', err));
+
+// client.connect();
 
 config();
+
+
 
 const hostname = 'localhost';
 const port = 8080;

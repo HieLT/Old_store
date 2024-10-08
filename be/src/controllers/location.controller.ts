@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 
 class LocationController {
-    async getAddress(req: Request, res: Response): Promise<void> {
+    async getRegions(req: Request, res: Response): Promise<void> {
         try {
             const result = await axios.get('https://gateway.chotot.com/v2/public/chapy-pro/regions');
 

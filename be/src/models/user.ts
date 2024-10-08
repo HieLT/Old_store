@@ -6,6 +6,7 @@ export interface IUser {
     phone: string | null;
     firstname: string;
     lastname: string;
+    babies : Schema.Types.ObjectId [] | null
     password: string | null;
     address: string | null;
     avatar: string | null ;
@@ -32,6 +33,10 @@ const User = new Schema<IUser>({
     lastname: {
         type: String,
         required: true
+    },
+    babies: {
+        type: Schema.Types.ObjectId,
+        ref: 'baby'
     },
     password: {
         type: String,
