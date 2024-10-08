@@ -26,12 +26,12 @@ const Baby = new Schema<IBaby>({
     type: Date,
     required: [true, 'ngày sinh là bắt buộc']
   },
-  parent_id: [{
+  parent_id: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: [true, 'Cần đăng nhập'],
     immutable: true,
-  }],
+  },
   gender: {
     type: String,
     enum: ['male', 'female'],
@@ -43,7 +43,7 @@ const Baby = new Schema<IBaby>({
         validator: function(weight: number) {
             return weight >= 2.5 && weight <=35
         },
-        message: 'Cân nặng của bé phải trong khoảng 2.5 đ- 30kg'
+        message: 'Cân nặng của bé phải trong khoảng 2.5 - 30kg'
     }
   },
   height: {

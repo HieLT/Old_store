@@ -3,17 +3,17 @@ import Baby, { IBaby } from "../models/baby";
 
 class BabyRepo {
     async getBaby(babyId: string): Promise<IBaby | null> {
-        try{
+        try{            
             const result = await Baby.findOne({ _id: babyId});
-
-            return result;
+            
+            return result ? result : null;
         } catch(err){
-            throw err
+            return null;
         }
     }
     async getBabies(parentId: string): Promise<IBaby[]> {
         try {
-            const result = await Baby.find({ parent_ids: parentId });
+            const result = await Baby.find({ parent_id: parentId });
 
             return result;
         } catch (err) {
@@ -29,8 +29,6 @@ class BabyRepo {
 
             return result ? true : false;
         } catch (err) {
-            console.log('here');
-            
             throw err;
         }
     }
@@ -39,8 +37,8 @@ class BabyRepo {
         try {
             const update : Partial<IBaby> = {...baby};
 
-            const result =  await Baby.findOneAndUpdate({ _id: id }, update);
-
+            const result =  await Baby.findOneAndUpdate({ _id: id }, update, { runValidators: true });
+            
             return result ? true : false;
             
         } catch (err) {

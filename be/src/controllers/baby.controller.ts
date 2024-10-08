@@ -51,7 +51,16 @@ class BabyController {
             const user = req.account as IUser;
 
             const baby = await BabyRepo.getBaby(babyId);
-            if (baby?.parent_id !== user._id) res.status(403).send('Không có quyền sửa đổi');
+
+            if (!baby) {
+                res.status(404).send('Không tìm thấy baby');
+                return;
+            }
+
+            if (String(baby?.parent_id) !== String(user._id)) {
+                res.status(403).send('Không có quyền sửa đổi');
+                return;
+            }
             else {
                 try {
                     const result = await BabyRepo.updateBaby(babyId, update);
@@ -77,7 +86,15 @@ class BabyController {
             const user = req.account as IUser;
 
             const baby = await BabyRepo.getBaby(babyId);
-            if (baby?.parent_id !== user._id) res.status(403).send('Không có quyền xóa');
+
+            if (!baby) {
+                res.status(404).send('Không tìm thấy baby');
+                return;
+            }
+
+            if (String(baby?.parent_id) !== String(user._id)) {
+                res.status(403).send('Không có quyền xóa');
+            }
             else {
                 const result = await BabyRepo.deleteBaby(babyId);
                 if (result) res.status(200).send('Xóa thành công');

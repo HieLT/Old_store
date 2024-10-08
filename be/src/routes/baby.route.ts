@@ -6,6 +6,7 @@ const babyRouter = express.Router();
 
 babyRouter.get('/get-babies', [authentication, isNotDeleted], babyController.getBabies);
 babyRouter.post('/create', [authentication, isNotDeleted], babyController.createBaby);
-babyRouter.patch('/update',[authentication, isNotDeleted], babyController.deleteBaby);
+babyRouter.patch('/update',[authentication, isNotDeleted], babyController.updateBaby);
+babyRouter.delete('/delete',[authentication, isNotDeleted], babyController.deleteBaby);
 
 export default babyRouter;
