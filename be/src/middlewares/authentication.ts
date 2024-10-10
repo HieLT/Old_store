@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import UserRepo from "../repositories/user.repository";
 import AdminRepo from "../repositories/admin.repository";
+import {ACCOUNT_ROLE} from "../utils/enum";
 
 interface CustomRequest extends Request {
     account?: any;  
@@ -16,13 +17,13 @@ const authentication = async (req: CustomRequest, res: Response, next: NextFunct
             return res.status(401).send({ message: "Không có token" });
         }
         const decoded = jwt.verify(token, accessSecret) as JwtPayload;
-        const email = decoded.email;
         const account_role = decoded.account_role;
+        const payload = account_role === ACCOUNT_ROLE.USER ? decoded.email : decoded.username
 
-        if (account_role === 'user') {
-            req.account = await UserRepo.getUserByEmail(email);
+        if (account_role === ACCOUNT_ROLE.USER) {
+            req.account = await UserRepo.getUserByEmail(payload);
         } else {
-            req.account = await AdminRepo.getAdminByEmail(email);
+            req.account = await AdminRepo.getAdminByUsername(payload, res);
         }
         req.account.account_role = account_role;
         next();

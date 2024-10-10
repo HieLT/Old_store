@@ -1,16 +1,14 @@
-import { model, Schema, Document } from "mongoose";
+import {model, Schema, Document} from "mongoose";
 
-export interface IProduct extends Document {  
+export interface IProduct extends Document {
     _id: Schema.Types.ObjectId;
     name: string;
-    description?: string;  
-    images: string[]; 
-    attributes: Map<string, any>; 
+    description?: string;
+    images: string[];
     price?: number;
     condition: 'New' | 'Used' | 'Like New';
-    category_id: Schema.Types.ObjectId;
+    category_id: Schema.Types.ObjectId
 }
-
 
 const ProductSchema = new Schema<IProduct>({
     name: {
@@ -21,13 +19,8 @@ const ProductSchema = new Schema<IProduct>({
         type: String
     },
     images: {
-        type: [String],  
+        type: [String],
         required: true
-    },
-    attributes: {
-        type: Map,
-        of: Schema.Types.Mixed, 
-        required: true,
     },
     price: {
         type: Number

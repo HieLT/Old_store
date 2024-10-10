@@ -93,32 +93,32 @@ class AdminController {
     }
 
     async createAdmin(req:Request, res:Response) :Promise<void> {
-        try{
-        const newAdmin = req.body;
-
-        if(!newAdmin.email || !validateEmail.validate(newAdmin.email)){
-            res.status(400).send('Email không đáp ứng yêu cầu');
-            return;
-        }
-
-        if(!newAdmin.password || !validatePassword(newAdmin.password)){
-            res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
-            return;
-        }
-
-        const adminExisted = await AdminRepo.getAdminByEmail(newAdmin.email);
-
-        if (adminExisted.Existed) {
-            res.status(400).send('Người dùng đã tồn tại');
-            return;
-        }
-
-        const result = await AdminRepo.createAdmin(newAdmin);
-        result ? res.status(201).send('Thêm mới admin thành công') 
-        : res.status(400).send('Tạo mới admin không thành công');
-        } catch{
-            res.status(500)
-        } 
+        // try{
+        // const newAdmin = req.body;
+        //
+        // if(!newAdmin.email || !validateEmail.validate(newAdmin.email)){
+        //     res.status(400).send('Email không đáp ứng yêu cầu');
+        //     return;
+        // }
+        //
+        // if(!newAdmin.password || !validatePassword(newAdmin.password)){
+        //     res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
+        //     return;
+        // }
+        //
+        // const adminExisted = await AdminRepo.getAdminByEmail(newAdmin.email);
+        //
+        // if (adminExisted.Existed) {
+        //     res.status(400).send('Người dùng đã tồn tại');
+        //     return;
+        // }
+        //
+        // const result = await AdminRepo.createAdmin(newAdmin);
+        // result ? res.status(201).send('Thêm mới admin thành công')
+        // : res.status(400).send('Tạo mới admin không thành công');
+        // } catch{
+        //     res.status(500)
+        // }
     }
 
     async deleteAdmin(req: Request, res: Response) : Promise<void> {
