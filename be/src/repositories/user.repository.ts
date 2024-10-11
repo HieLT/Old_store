@@ -50,7 +50,7 @@ class UserRepo {
 
             return result ? true : false ;
         } catch (err) {
-            throw err;
+            return false;
         }
     }
     
@@ -66,7 +66,7 @@ class UserRepo {
             return result ? true : false ;
             
         } catch (err) {
-            throw err;
+            return false;
         }
     }
 
@@ -77,7 +77,7 @@ class UserRepo {
             return result ? true : false ;
             
         } catch(err) {
-            throw err;
+            return false;
         }
     }
 
@@ -88,7 +88,7 @@ class UserRepo {
             return result ? true : false ;
             
         } catch(err) {
-            throw err;
+            return false
         }
     }
 }
