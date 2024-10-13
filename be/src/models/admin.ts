@@ -1,47 +1,42 @@
 import { model, Schema } from "mongoose";
+import {ADMIN_ROLE} from "../utils/enum";
 
 export interface IAdmin {
     _id: Schema.Types.ObjectId;
-    email: string;
+    firstname?: string,
+    lastname?: string,
+    avatar?: string | null,
+    username: string;
     password: string;
-    avatar : string;
-    phone : string;
-    firstname : string; 
-    lastname : string;
-    role: "admin" | "super_admin"; 
+    role: "admin" | "super_admin";
     is_deleted: boolean;
 }
 
 const Admin = new Schema<IAdmin>({
-    email: {
+    firstname: {
         type: String,
-        required: true,
-        immutable : true
+        default: null
     },
-    password: {
+    lastname: {
         type: String,
-        required: true
+        default: null
     },
     avatar: {
         type: String,
         default: null
     },
-    phone :{
-        type: String ,
-        default: null
-    },
-    firstname: {
+    username: {
         type: String,
         required: true
     },
-    lastname: {
+    password: {
         type: String,
         required: true
     },
     role: {
         type: String,
-        enum: ["admin", "super_admin"], 
-        default: "admin", 
+        enum: ADMIN_ROLE,
+        default: "admin",
         immutable : true
     },
     is_deleted: {

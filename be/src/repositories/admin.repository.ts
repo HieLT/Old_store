@@ -2,10 +2,10 @@ import Admin, { IAdmin } from "../models/admin";
 import bcrypt from "bcrypt";
 
 class AdminRepo {
-    async getAdminByEmail(email : any) : Promise<any> {
+    async getAdminByUsername(username : string, res: any) : Promise<any> {
         try {
-            const admin = await Admin.findOne({email});
-            return admin;
+            const admin = await Admin.findOne({username})
+            return admin || res.status(404).send('Tài khoản không tồn tại')
         }
         catch (err){
             throw err;

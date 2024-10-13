@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
 import passport from "../utils/passport";
+import {ACCOUNT_ROLE} from "../utils/enum";
 
 interface CustomRequest extends Request {
     account?: any;  
@@ -84,12 +85,12 @@ class AuthController {
 
     async login(req: Request, res: Response): Promise<void> {
         try {
-            const { email, password, account_role } = req.body;
+            const { email, password, account_role, username } = req.body;
             if ( !account_role ){
                 res.status(400).send('Thiếu account_role');
                 return;
             }
-            if(!email || !validateEmail.validate(email)){
+            if(account_role === ACCOUNT_ROLE.USER && (!email || !validateEmail.validate(email))){
                 res.status(400).send('Email không đáp ứng yêu cầu');
                 return;
             }
@@ -101,9 +102,9 @@ class AuthController {
 
             //accont_role :  admin or user 
             let account ;
-            if ( account_role === 'user') account = await UserRepo.getUserByEmail(email) ;
-            else account = await AdminRepo.getAdminByEmail(email);
-            
+            if ( account_role === ACCOUNT_ROLE.USER) account = await UserRepo.getUserByEmail(email) ;
+            else account = await AdminRepo.getAdminByUsername(username, res);
+
             if (!account || account.is_delete) {
                 handleUserNotFoundOrDeleted(res, account);
                 return;
@@ -112,12 +113,13 @@ class AuthController {
             const isPasswordCorrect = await bcrypt.compare(password, account.password!);
 
             if (!isPasswordCorrect) {
-                res.status(401).send('Email hoặc mật khẩu không chính xác');
+                res.status(401).send(`${account_role === ACCOUNT_ROLE.USER ? 'Email' : 'Username'} hoặc mật khẩu không chính xác`);
                 return;
             }
 
-            const accessToken = createToken({ email , account_role}, '15m', accessSecret);
-            const refreshToken = createToken({ email , account_role}, '7d', refreshSecret);
+            const actorPayload = account_role === ACCOUNT_ROLE.USER ? {email} : {username}
+            const accessToken = createToken({ ...actorPayload , account_role}, '15m', accessSecret);
+            const refreshToken = createToken({ ...actorPayload , account_role}, '7d', refreshSecret);
             
             res.status(200).send({
                 access_token: accessToken ,
@@ -142,10 +144,10 @@ class AuthController {
                 res.status(400).send('Mật khẩu không chính xác');
                 return;
             }
-            
-            if ( account.account_role === 'user') await UserRepo.updateUser(account._id, {password : newPassword});
+
+            if ( account.account_role === ACCOUNT_ROLE.USER) await UserRepo.updateUser(account._id, {password : newPassword});
             else await AdminRepo.updateAdmin(account._id, {password : newPassword});
-            
+
             res.status(200).send('Cập nhật thành công');
         } catch{
             res.status(500);
@@ -156,11 +158,11 @@ class AuthController {
         try {
             const { refreshToken } = req.body;
             const decoded = jwt.verify(refreshToken,refreshSecret) as JwtPayload;
-            const email = decoded.email;
             const account_role = decoded.account_role;
+            const payload = account_role === ACCOUNT_ROLE.USER ? {email: decoded.email} : {username: decoded.username}
 
-            const newAccessToken = createToken({email, account_role}, '15m' , accessSecret);
-            const newRefreshToken = createToken({email, account_role} , '7d' , refreshSecret);
+            const newAccessToken = createToken({...payload, account_role}, '15m' , accessSecret);
+            const newRefreshToken = createToken({...payload, account_role} , '7d' , refreshSecret);
 
             res.status(200).send({
                 access_token: newAccessToken,
@@ -226,7 +228,7 @@ class AuthController {
             }
     
             const email = (user as { email: string }).email;
-            const token = createToken({ email, account_role:'user'}, '1h', accessSecret);
+            const token = createToken({ email, account_role:ACCOUNT_ROLE.USER}, '1h', accessSecret);
             
             const userProfile = await UserRepo.getUserByEmail(email);
             setAuthCookies(res, token, userProfile);
