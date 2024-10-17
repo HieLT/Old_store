@@ -28,8 +28,8 @@ class BabyRepo {
             const result = await Baby.create(create);
 
             return result ? true : false;
-        } catch (err) {
-            throw err;
+        } catch{
+            return false;
         }
     }
     
@@ -41,8 +41,8 @@ class BabyRepo {
             
             return result ? true : false;
             
-        } catch (err) {
-            throw err;
+        } catch {
+            return false;
         }
     }
 
@@ -52,8 +52,8 @@ class BabyRepo {
 
             return result ? true : false ;
             
-        } catch(err) {
-            throw err;
+        } catch {
+            return false;
         }
     }
 }

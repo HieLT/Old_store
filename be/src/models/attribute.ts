@@ -4,7 +4,7 @@ import {CATEGORY_ATTRIBUTE_TYPE} from "../utils/enum";
 export interface IRequestAttribute {
     label: string,
     input_type: string,
-    initial_value: Schema.Types.Mixed,
+    initial_value: string[] | string | [],
     is_required: boolean,
 }
 

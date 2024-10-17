@@ -23,11 +23,16 @@ const createToken = (payload: object, expiresIn: string, secretKey: string): str
     return jwt.sign(payload, secretKey, options);
 };
 
-const handleUserNotFoundOrDeleted = (res: Response, account: any): void => {
-    if (!account) {
-        res.status(401).send('Email hoặc mật khẩu không chính xác');
-    } else if (account.is_delete) {
+const handleRefuseLogin = (res: Response, account: any): void => {
+    if (account.is_delete) {
         res.status(403).send('Người dùng đã bị xóa, liên hệ quản trị viên để mở khóa');
+    } else if (!account ){
+        res.status(400).send('Tài khoản không tồn tại');
+    } else if (account.is_google_account) {
+        res.status(422).send('Tài khoản Google không hợp lệ, vui lòng đăng nhập lại');
+    } 
+    else {
+        res.status(401).send('Email hoặc mật khẩu không chính xác');
     }
 };
 
@@ -104,12 +109,12 @@ class AuthController {
             let account ;
             if ( account_role === ACCOUNT_ROLE.USER) account = await UserRepo.getUserByEmail(email) ;
             else account = await AdminRepo.getAdminByUsername(username, res);
-
-            if (!account || account.is_delete) {
-                handleUserNotFoundOrDeleted(res, account);
+            if (!account || account.is_google_account || account.is_delete) {
+                handleRefuseLogin(res, account);
                 return;
             }
-
+           
+            
             const isPasswordCorrect = await bcrypt.compare(password, account.password!);
 
             if (!isPasswordCorrect) {

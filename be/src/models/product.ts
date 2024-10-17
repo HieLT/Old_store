@@ -13,14 +13,14 @@ export interface IProduct extends Document {
 const ProductSchema = new Schema<IProduct>({
     name: {
         type: String,
-        required: true
+        required: [true,'Tên product là thuộc tính bắt buộc']
     },
     description: {
         type: String
     },
     images: {
         type: [String],
-        required: true
+        required: [true,'images là thuộc tính bắt buộc']
     },
     price: {
         type: Number
@@ -28,12 +28,13 @@ const ProductSchema = new Schema<IProduct>({
     condition: {
         type: String,
         enum: ["New", "Used", "Like New"],
-        required: true
+        required: [true,'Condition là thuộc tính bắt buộc']
     },
     category_id: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: 'Category'
+        ref: 'Category',
+    
     }
 }, {
     timestamps: true

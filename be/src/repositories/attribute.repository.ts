@@ -16,34 +16,53 @@ interface IAttribute {
 }
 
 class AttributeRepo {
-    async getAttributes(categoryId: string, res: any): Promise<any> {
+    async getAttribute(attributeId: string): Promise<IAttribute | null> {
         try {
-            /* Validation */
-            if (!checkIsObjectId(categoryId)) {
-                return res.status(400).send({message: 'ID danh mục không hợp lệ'})
+            const result = await Attribute.findById(attributeId)
+            if (result) {
+                return {
+                    ...result,
+                    _id: result._id.toString(), 
+                } as IAttribute;
             }
-            const categoryObjectId = new ObjectId(categoryId)
-            const category = await Category.findOne({_id: categoryObjectId, is_deleted: false})
-            if (!category) {
-                return res.status(404).send({message: 'Danh mục không tồn tại'})
-            }
-
-            /* Get */
+            return null;
+        } catch (error) {
+            return null;
+        }
+    }
+    async getAttributesRequired(categoryId: string): Promise<any> {
+        try {
             const attributes = await Attribute.find(
                 {
-                    category_id: categoryObjectId,
+                    category_id: categoryId,
+                    is_required: true,
+                    is_deleted: false
+                },
+                {
+                    is_deleted: 0,
+                    __v: 0
+                }
+            )
+            return attributes;
+        } catch (error) {
+            console.error('Error fetching required attributes:', error);
+            return [];
+        }
+    }
+    
+    async getAttributes(categoryId: string): Promise<any> {
+        try {
+            const attributes = await Attribute.find(
+                {
+                    category_id: categoryId,
                     is_deleted: false
                 }, {
                     is_deleted: 0,
                     __v: 0
                 })
-            return res.status(200).send({attributes})
-        } catch (err) {
-            console.log(err)
-            return res.status(500).send({
-                message: 'Lỗi máy chủ',
-                detail: err
-            })
+            return attributes;
+        } catch {
+            return null;
         }
     }
 
@@ -138,7 +157,7 @@ class AttributeRepo {
                             ...(_.omit(item, '_id')),
                             category_id: new ObjectId(categoryId)
                         }
-                    // TODO: check if new value !== old value -> update
+                        
                     if (item?._id) {
                         const existAttribute = attributes?.find(attr => String(attr._id) === String(item?._id))?.toObject()
                         // @ts-ignore

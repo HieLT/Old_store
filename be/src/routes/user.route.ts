@@ -8,7 +8,7 @@ const userRouter = express.Router();
 
 userRouter.get('/get-profile',[authentication, isNotDeleted], userController.getProfile);
 userRouter.patch('/update',[authentication, isNotDeleted], userController.updateUser);
-userRouter.patch('/update-avatar',[authentication, isNotDeleted, Multer.getUpload().array('files')], userController.updateAvatar);
+userRouter.patch('/update-avatar',[authentication, isNotDeleted, Multer.getUpload().single('file')], userController.updateAvatar);
 
 
 
@@ -43,7 +43,7 @@ userRouter.get('/html', (req, res) => {
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="avatar">
                         Upload Avatar
                     </label>
-                    <input type="file" id="avatar" name="files" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <input type="file" id="avatar" name="file" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="flex items-center justify-between">
                     <button type="button" id="submitBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
@@ -60,7 +60,7 @@ userRouter.get('/html', (req, res) => {
             const formData = new FormData(form);
 
             // Replace with your actual token
-            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxldGhhbmhoaWVwNDMwQGdtYWlsLmNvbSIsImlhdCI6MTcyNjU1MDkxNiwiZXhwIjoxNzI2NTUxODE2fQ.qa3Sc62Sny5pSX61NLQaPCSMwG_kpbCC7y2RFHzwqrY';
+            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxldGhhbmhoaWVwNDMwQGdtYWlsLmNvbSIsImFjY291bnRfcm9sZSI6InVzZXIiLCJpYXQiOjE3MjkwODk5OTEsImV4cCI6MTcyOTA5MDg5MX0.Uv2m3W8Z4wygAcDk_nKtQxLtPJ-auUnATR4noiDXYws';
 
             try {
                 const response = await fetch('http://localhost:8080/user/update-avatar', {

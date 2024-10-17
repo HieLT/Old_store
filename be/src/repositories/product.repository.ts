@@ -1,52 +1,80 @@
 import Product, { IProduct } from '../models/product';
-import CategoryRepo from '../repositories/category.repository';
+import AttributeRepo from './attribute.repository';
+import AttributeProductRepo from './attribute_product.repository';
+import { IAttribute } from '../models/attribute';
+import mongoose, { ObjectId } from 'mongoose';
 
-const validateProduct = async (product: IProduct): Promise<boolean> => {
-    // Check if category_id is provided
-    if (!product.category_id) {
-        // throw new Error('category_id is required.');
-        return false;
-    }
 
-    const allowedAttributes = await getAllowedAttributesForCategory(String(product.category_id));
-
-    if (product.attributes) {
-        const attributeKeys = Array.from(product.attributes.keys()); 
-        const invalidAttributes = attributeKeys.filter(attr => !allowedAttributes.includes(attr));
-        if (invalidAttributes.length > 0) {
-            // throw new Error(`Invalid attributes: ${invalidAttributes.join(', ')}`);
-            return false;
-        }
-    }
-    
-    return true ;
-};
-
-const getAllowedAttributesForCategory = async (categoryId: string): Promise<string[]> => {
-    try {
-        const category = await CategoryRepo.getCategoryById(categoryId); 
-        return category?.attributes || []; 
-    } catch (err) {
-        throw new Error('Failed to fetch category attributes');
-    }
-};
 
 class ProductRepo {
-    async createProduct(product: IProduct): Promise<IProduct | false> {
+    async createProduct(
+        product: any,
+        productAttributes: {
+            id: string,
+            productId: ObjectId,
+            attributeId: ObjectId,
+            value: any
+        }[]
+    ): Promise<any> {
+        const session = await mongoose.startSession(); // Start a session
+        session.startTransaction(); // Start a transaction
+
         try {
-            const validate = await validateProduct(product); 
-            if( validate === false) return false; 
-            const result = await Product.create(product);
-            return result || false;
+            // Create the main product first and get its _id
+            const result= await Product.create(product, { session });
+
+            if (!result) {
+                await session.abortTransaction(); // Rollback if product creation fails
+                return false;
+            }
+
+            const productId = result[0]._id;
+
+            // Check if all required attributes are present
+            const getAttributesRequired = await AttributeRepo.getAttributesRequired(String(product.category_id));
+            const idAttributesRequired = getAttributesRequired.map((item: IAttribute) => item._id);
+            const idAttributeInput = productAttributes.map(item => item.id);
+
+            const allRequiredAttributeAreIncluded = idAttributesRequired.every((id: string) => idAttributeInput.includes(id));
+            if (!allRequiredAttributeAreIncluded) {
+                await session.abortTransaction(); // Rollback the transaction if required attributes are missing
+                return false;
+            }
+
+            // Update productAttributes to include the productId for each attribute
+            const updatedAttributes = productAttributes.map(attribute => ({
+                ...attribute,
+                productId 
+            }));
+
+            // Create each attribute product concurrently
+            const creationPromises = updatedAttributes.map(attribute =>
+                AttributeProductRepo.createAttributeProduct(attribute, session) 
+            );
+
+            const results = await Promise.all(creationPromises);
+
+ 
+            if (results.includes(false)) {
+                await session.abortTransaction();
+                return false;
+            }
+
+            await session.commitTransaction(); 
+            return result;
         } catch (err) {
-            throw err;
+            await session.abortTransaction(); 
+            throw err; 
+        } finally {
+            session.endSession(); 
         }
     }
+
 
     async updateProduct(productId: string, product: IProduct): Promise<boolean | false> {
         try {
-            const validate = await validateProduct(product); 
-            if( validate === false) return false; 
+            const validate = await validateProduct(product);
+            if (validate === false) return false;
             const result = await Product.findByIdAndUpdate(productId, product);
             return result ? true : false;
         } catch (err) {

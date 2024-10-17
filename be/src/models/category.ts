@@ -10,7 +10,7 @@ export interface ICategory extends Document {
 const CategorySchema = new Schema<ICategory>({
     name: {
         type: String,
-        required: true
+        required: [true,'Thuộc tính name là bắt buộc']
     },
     description: {
         type: String

@@ -32,7 +32,7 @@ connect();
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 app.use(cors({
-    origin: [`${fe_access}`],
+    origin: [`${fe_access}`, `http://localhost:8080` ],
     methods: "GET,POST,PUT,PATCH,DELETE",
     credentials: true,
 }));
