@@ -1,42 +1,56 @@
-import  AttributeProduct, {IAttributeProduct} from "../models/attribute_product";
-import { ClientSession } from 'mongoose'; 
+import AttributeProduct, { IAttributeProduct } from "../models/attribute_product";
+import { ClientSession } from 'mongoose';
 
 class AttributeProductRepo {
     async createAttributeProduct(
-        attribute_product: Partial<IAttributeProduct>, 
+        attributeProduct: Partial<IAttributeProduct>,
         session?: ClientSession
     ): Promise<boolean> {
         try {
-            const create: Partial<IAttributeProduct>[] =  [{ ...attribute_product }] ; 
-    
-            const options = session ? { session } : {}; // Only include session if it exists
-    
-            const result = await AttributeProduct.create(create, options);
-    
+            const newAttributeProduct = new AttributeProduct(attributeProduct);
+            const result = await newAttributeProduct.save({ session });
             return result ? true : false;
-        } catch (error) {
-            return false; 
+        } catch (err) {
+            throw err;
         }
     }
-    
-    async updateAttributeProduct(id: string, baby: Partial<IAttributeProduct>): Promise<boolean> {
-        try {
-            const update : Partial<IAttributeProduct> = {...baby};
 
-            const result =  await AttributeProduct.findOneAndUpdate({ _id: id }, update, { runValidators: true });
-            
+    async updateAttributeProduct(
+        isDraft: boolean,
+        productAttributes: {
+            id: string;
+            productId: string;
+            attributeId: string;
+            value: any;
+        },
+        session: ClientSession
+    ): Promise<boolean> {
+        try {
+            const updateOrCreate = {
+                product_id : productAttributes.productId,
+                attribute_id : productAttributes.attributeId,
+                value: productAttributes.value
+            }
+            const result = await AttributeProduct.findOneAndUpdate(
+                { _id: productAttributes.id },
+                updateOrCreate,
+                {
+                    session,
+                    runValidators: !isDraft,
+                    upsert: true, // Create if not found
+                    setDefaultsOnInsert: true, // Apply default values if creating
+                }
+            );
             return result ? true : false;
-            
         } catch {
             return false;
         }
     }
-    async deleteAttributeProduct(id: String) : Promise<boolean> {
+
+    async deleteAttributeProduct(id: string): Promise<boolean> {
         try {
             const result = await AttributeProduct.findByIdAndDelete(id);
-
-            return result ? true : false ;
-            
+            return result ? true : false;
         } catch {
             return false;
         }

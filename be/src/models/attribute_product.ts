@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 import AttributeRepo from "../repositories/attribute.repository";
 
 export interface IAttributeProduct {
-    _id : Schema.Types.ObjectId,
+    _id: Schema.Types.ObjectId,
     product_id: Schema.Types.ObjectId,
     attribute_id: Schema.Types.ObjectId,
     value: string[] | string | [];
@@ -24,36 +24,42 @@ const AttributeProduct = new Schema<IAttributeProduct>({
     value: {
         type: Schema.Types.Mixed,
         validate: {
-            validator: async function (input: any) {
-                const attribute = await AttributeRepo.getAttribute(String(this.attribute_id)); 
-                if (!attribute) return false; 
-    
+            validator: async function (input: string) {
+                if (!input || input.length === 0) throw new Error(`attribute_id:${this.attribute_id} Đầu vào là bắt buộc`);
+
+                const attribute = await AttributeRepo.getAttribute(String(this.attribute_id));
+
                 const attribute_type = attribute.input_type;
                 const attribute_initial_value = attribute.initial_value as String[];
-    
-    
-                if (attribute_type === 'Dropdown' || attribute_type === 'Radio') {
-                    const isValid = typeof input === 'string' && attribute_initial_value.includes(input);
+
+                if (attribute_type === 'dropdown' || attribute_type === 'radio') {
+                    const isValid = attribute_initial_value.includes(input);
                     if (!isValid) {
-                        throw new Error('Đầu vào của thuộc tính phải là 1 string');
+                        throw new Error(`attribute_id:${this.attribute_id} Đầu vào của thuộc tính phải là ${attribute_initial_value}`);
                     }
                     return isValid;
                 }
-    
-                if (attribute_type === 'Checkbox') {
+
+                else if (attribute_type === 'checkbox') {
                     const isValid = Array.isArray(input) && input.every(item => attribute_initial_value.includes(item));
                     if (!isValid) {
-                        throw new Error('Đầu vào của thuộc tính phải là 1 string array');
+                        throw new Error(`attribute_id:${this.attribute_id} Đầu vào của thuộc tính phải là 1 string array và phải là ${attribute_initial_value}`);
                     }
                     return isValid;
                 }
-    
-                return false; 
+
+                else if (attribute_type === 'text') {
+                    if (typeof (input) !== 'string') {
+                        throw new Error(`attribute_id:${this.attribute_id} Đầu vào của thuộc tính phải là 1 string`);
+                    }
+                    return true;
+                }
+                return false;
             },
-            message: (props: any) => props.reason.message, 
+            message: (props: any) => props.message,
         },
     }
-    
+
 }, {
     timestamps: true,
 });

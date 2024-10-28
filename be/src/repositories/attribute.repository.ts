@@ -16,16 +16,10 @@ interface IAttribute {
 }
 
 class AttributeRepo {
-    async getAttribute(attributeId: string): Promise<IAttribute | null> {
+    async getAttribute(attributeId: string): Promise<any> {
         try {
-            const result = await Attribute.findById(attributeId)
-            if (result) {
-                return {
-                    ...result,
-                    _id: result._id.toString(), 
-                } as IAttribute;
-            }
-            return null;
+            const result = await Attribute.findById(attributeId);
+            return result;
         } catch (error) {
             return null;
         }

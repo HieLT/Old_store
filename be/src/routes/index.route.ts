@@ -5,7 +5,7 @@ import userRouter from './user.route';
 import locationRouter from './location.route';
 import publicRouter from "./public.route";
 import babyRouter from './baby.route';
-
+import postRouter from './post.route';
 
 
 const route = (app: any) => {
@@ -16,6 +16,7 @@ const route = (app: any) => {
     app.use('/user' , userRouter);
     app.use('/location', locationRouter);
     app.use('/baby',babyRouter);
+    app.use('/post',postRouter);
 };
 
 export default route;

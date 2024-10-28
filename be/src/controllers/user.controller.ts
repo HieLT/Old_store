@@ -4,9 +4,6 @@ import UserRepo from "../repositories/user.repository";
 import validatePassword from '../utils/validatePassword';
 import { IUser } from '../models/user';
 
-// interface MulterRequest extends Request {
-//     file: Express.Multer.File;
-// }
 interface CustomRequest extends Request {
     account?: any;
 }
@@ -16,7 +13,7 @@ class UserController {
         try {
             const user = req.account as IUser;
             const { password: _, ...userDetails } = user;
-            res.status(200).send(user);
+            res.status(200).send(userDetails);
         } catch {
             res.status(500);
         }
