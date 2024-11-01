@@ -9,15 +9,15 @@ class PostRepo {
             throw err;
         }
     }
-    async createPost(isDraft : boolean, post: Partial <IPost>): Promise<boolean> {
+    async createPost(isValidate : boolean, post: Partial <IPost>): Promise<any> {
         try{
             const newPost = new Post(post);
 
-            const result = await newPost.save({validateBeforeSave: !isDraft});
-
-            return result ? true : false;
+            const result = await newPost.save({validateBeforeSave: isValidate});
+          
+            return result ? result: false;
         } catch(err){
-            return false;
+            throw err;
         }
     }
 

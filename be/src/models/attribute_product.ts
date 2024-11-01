@@ -11,13 +11,13 @@ export interface IAttributeProduct {
 const AttributeProduct = new Schema<IAttributeProduct>({
     product_id: {
         type: Schema.Types.ObjectId,
-        required: true,
+        required: [true, 'product_id là thuộc tính bắt buộc'],
         ref: 'Product',
         immutable: true
     },
     attribute_id: {
         type: Schema.Types.ObjectId,
-        required: true,
+        required: [true,'attribute_id là thuộc tính bắt buộc'],
         ref: 'Attribute',
         immutable: true
     },

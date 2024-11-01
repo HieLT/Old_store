@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 
 export interface IPost {
     _id: Schema.Types.ObjectId;
-    name : string;
+    title : string;
     poster_id: Schema.Types.ObjectId;
     product_id: Schema.Types.ObjectId | null;
     status: 'Pending'|'Approved'|'Rejected'|'Hidden'|'Draft'|'Done'|'Expired';
@@ -11,9 +11,9 @@ export interface IPost {
 }
 
 const Post = new Schema<IPost>({
-    name: {
+    title: {
         type: String,
-        required:[true,'Thiếu post name']
+        required:[true,'Thiếu title']
     },
     poster_id: {
         type: Schema.Types.ObjectId,
@@ -31,7 +31,7 @@ const Post = new Schema<IPost>({
     },
     location: {
         type: String,
-        required: [true,"Thiếu post location"]
+        required: [true,"Thiếu location"]
     },
     is_deleted: {
         type: Boolean,

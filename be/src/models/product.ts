@@ -32,7 +32,7 @@ const ProductSchema = new Schema<IProduct>({
     },
     category_id: {
         type: Schema.Types.ObjectId,
-        required: true,
+        required: [true, 'Category là thuộc tính bắt buộc'],
         ref: 'Category',
     
     }

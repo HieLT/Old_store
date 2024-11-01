@@ -3,12 +3,13 @@ import { ClientSession } from 'mongoose';
 
 class AttributeProductRepo {
     async createAttributeProduct(
+        isValidate : boolean,
         attributeProduct: Partial<IAttributeProduct>,
-        session?: ClientSession
+        session: ClientSession
     ): Promise<boolean> {
         try {
             const newAttributeProduct = new AttributeProduct(attributeProduct);
-            const result = await newAttributeProduct.save({ session });
+            const result = await newAttributeProduct.save({ session, validateBeforeSave: isValidate});
             return result ? true : false;
         } catch (err) {
             throw err;
