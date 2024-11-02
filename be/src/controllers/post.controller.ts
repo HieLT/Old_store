@@ -86,7 +86,7 @@ class PostController {
                     value: attribute.value
                 }));
 
-                // Create product attributes concurrently
+                // Create product attributes concurrently   
                 await Promise.all(
                     updatedAttributes.map((attribute: any) =>
                         AttributeProductRepo.createAttributeProduct(!is_draft, attribute, session)
