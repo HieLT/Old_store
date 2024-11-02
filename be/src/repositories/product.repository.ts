@@ -3,6 +3,7 @@ import AttributeRepo from './attribute.repository';
 import AttributeProductRepo from './attribute_product.repository';
 import { IAttribute } from '../models/attribute';
 import mongoose, { ClientSession } from 'mongoose';
+import { partial } from 'lodash';
 
 
 
@@ -29,57 +30,22 @@ class ProductRepo {
             throw err;
         } 
     }
-    // async updateProduct(
-    //     isDraft: boolean,
-    //     product: any,
-    //     productAttributes: {
-    //         id: string,
-    //         attributeId: string,
-    //         value: any
-    //     }[]
-    // ): Promise<any> {
-    //     const session = await mongoose.startSession(); // Start a session
-    //     session.startTransaction(); // Start a transaction
+    async updateProduct(
+        isValidate: boolean,
+        product : any,
+        session: ClientSession
+    ): Promise<any> {
+        try{
+            const update : Partial<IProduct>  = {...product};
 
-    //     try {
-    //         const updatedProduct = await Product.findOneAndUpdate({ _id: product._id }, product, { session, runValidator: !isDraft });
+            const result = await Product.findOneAndUpdate({_id : product.id} , update , {runValidators: isValidate});
 
-    //         if (!updatedProduct) {
-    //             await session.abortTransaction();
-    //             throw new Error('Cập nhật product thất bại');
-    //         }
+            return result ? result : false;
 
-    //         if (!isDraft) {
-    //             const missingAttributes = await isContainAllAttributeRequired(productAttributes, product.category_id)
-
-    //             const missingLabels = missingAttributes.map((attr: IAttribute) => attr.label);
-
-    //             if (missingLabels.length > 0) {
-    //                 await session.abortTransaction(); // Rollback the transaction if required attributes are missing
-
-    //                 throw new Error(`Thiếu các thuộc tính bắt buộc: ${missingLabels.join(', ')}`);
-    //             }
-    //         }
-
-    //         const updationPromises = productAttributes.map((attribute: any) =>
-    //             AttributeProductRepo.updateAttributeProduct(
-    //                 isDraft,
-    //                 { ...attribute, productId: product._id },
-    //                 session)
-    //         );
-
-    //         const results = await Promise.all(updationPromises);
-    //         if (results.includes(false)) {
-    //             await session.abortTransaction();
-    //         }
-
-    //         await session.commitTransaction();
-    //         return results;
-
-    //     } catch (err) {
-    //         throw err;
-    //     }
-    // }
+        } catch (err) {
+            throw err;
+        }
+    }
 }
 
 export default new ProductRepo();
