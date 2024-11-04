@@ -28,8 +28,8 @@ class BabyRepo {
             const result = await Baby.create(create);
 
             return result ? true : false;
-        } catch{
-            return false;
+        } catch (e) {
+            throw e
         }
     }
     

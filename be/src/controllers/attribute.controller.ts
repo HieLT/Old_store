@@ -1,11 +1,11 @@
 import {Request, Response} from "express";
-import AttributeRepository from "../repositories/attribute.repository";
-import Category from "../models/category";
-import { checkIsObjectId } from "../utils/helpers";
 import attributeRepository from "../repositories/attribute.repository";
+import Category from "../models/category";
+import {checkIsObjectId} from "../utils/helpers";
+
 class AttributeController {
     async getAttributesOfCategory(req: Request, res: Response): Promise<void> {
-        try{
+        try {
             const categoryId = req.body;
             if (!checkIsObjectId(categoryId)) {
                 res.status(400).send({message: 'ID danh mục không hợp lệ'});
@@ -23,10 +23,6 @@ class AttributeController {
         } catch {
             res.status(500);
         }
-    }
-
-    async updateAttributes(req: Request, res: Response): Promise<any> {
-        return AttributeRepository.handleUpdateAttributes(req.params.id, req.body, res)
     }
 }
 

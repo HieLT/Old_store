@@ -28,6 +28,11 @@ adminRouter.post(
     [authentication, isNotDeleted, isAdmin],
     categoryController.createCategory
 )
+adminRouter.get(
+    '/category/:id',
+    [authentication, isNotDeleted, isAdmin],
+    categoryController.getCategoryById
+)
 adminRouter.put(
     '/categories/:id',
     [authentication, isNotDeleted, isAdmin],
@@ -37,11 +42,6 @@ adminRouter.patch(
     '/categories/:id',
     [authentication, isNotDeleted, isAdmin],
     categoryController.hideOrShowCategory
-)
-adminRouter.put(
-    '/categories/:id/attributes',
-    [authentication, isNotDeleted, isAdmin],
-    attributeController.updateAttributes
 )
 
 export default adminRouter;

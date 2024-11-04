@@ -51,3 +51,28 @@ export const checkIfTwoArrayEqualsUnordered = (arr1: string[], arr2: string[]): 
 
     return elementCount.size === 0
 }
+
+export const countDuplicateValue = (arr: any, keyInObject: string | null = null): string[] => {
+    let countValues: any = {}
+    let duplicateValues: any = []
+    if (arr?.length > 0) {
+        arr?.forEach((item: any) => {
+            let value = keyInObject ? item[keyInObject] : item
+            if (typeof value === 'string') {
+                value = value.toLowerCase()
+            }
+            if (!countValues?.[value]) {
+                countValues[value] = 1
+            } else {
+                countValues[value] += 1
+            }
+        })
+        Object.keys(countValues)?.forEach(key => {
+            if (countValues[key] > 1) {
+                duplicateValues = [...duplicateValues, key]
+            }
+        })
+        return duplicateValues
+    }
+    return []
+}

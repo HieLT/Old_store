@@ -6,6 +6,10 @@ class CategoryController {
         return CateRepo.getAllCategoriesForPublic(req.query, res)
     }
 
+    async getCategoryById(req: Request, res: Response): Promise<any> {
+        return CateRepo.handleGetCategoryById(req.params.id, res)
+    }
+
     async getCategoriesAdmin(req: Request, res: Response): Promise<any> {
         return CateRepo.getAllCategoriesForAdmin(req.query, res)
     }

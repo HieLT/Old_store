@@ -1,6 +1,12 @@
-import Attribute, {IRequestAttribute} from "../models/attribute";
+import Attribute, {IAttribute, IRequestAttribute} from "../models/attribute";
 import {createCategorySchema, updateCategorySchema} from "../requests/category.request";
-import {checkIsObjectId, getDetailErrorMessage, removeVietnameseTones} from "../utils/helpers";
+import {
+    checkIfTwoArrayEqualsUnordered,
+    checkIsObjectId,
+    countDuplicateValue,
+    getDetailErrorMessage,
+    removeVietnameseTones
+} from "../utils/helpers";
 import Category from "../models/category";
 import {DEFAULT_GET_QUERY} from "../utils/constants";
 import _, {isSafeInteger} from "lodash";
@@ -20,6 +26,7 @@ interface IQuery {
 interface IUpdateCategoryData {
     name: string,
     description: string
+    attributes: IAttribute[]
 }
 
 class CategoryRepo {
@@ -28,7 +35,7 @@ class CategoryRepo {
         try {
             const currentPage: number = (_.isNaN(page) || Number(page) <= 0 || !page) ? DEFAULT_GET_QUERY.PAGE : Number(page)
             const pageSize: number = (_.isNaN(page_size) || Number(page_size) <= 0 || !page_size) ? DEFAULT_GET_QUERY.PAGE_SIZE : Number(page_size)
-            const searchStringRegex = q ? new RegExp(removeVietnameseTones(q), 'i') : ''
+            const searchStringRegex = q ? new RegExp(q, 'i') : ''
             let sortOrder = DEFAULT_GET_QUERY.SORT_ORDER
             const sortColumn = column || DEFAULT_GET_QUERY.COLUMN
 
@@ -101,6 +108,41 @@ class CategoryRepo {
         return this.handleGetCategories(reqQuery, ACCOUNT_ROLE.ADMIN, res)
     }
 
+    async handleGetCategoryById(categoryId: string, res: any): Promise<any> {
+        try {
+            if (!checkIsObjectId(categoryId)) {
+                return res.status(400).send({message: 'ID danh mục không hợp lệ'})
+            }
+            const category = await Category.aggregate([
+                {$match: {_id: new ObjectId(categoryId), is_deleted: false}},
+                {
+                    $lookup: {
+                        from: 'attributes',
+                        localField: '_id',
+                        foreignField: 'category_id',
+                        as: 'attributes'
+                    }
+                },
+                {$unwind: {path: '$attributes', preserveNullAndEmptyArrays: true}},
+                {$match: {'attributes.is_deleted': {$in: [false, null]}}},
+                {
+                    $group: {
+                        _id: '$_id',
+                        name: {$first: '$name'},
+                        description: {$first: '$description'},
+                        attributes: {$push: '$attributes'}
+                    }
+                }
+            ])
+            if (category?.length === 0) {
+                return res.status(404).send({message: 'Danh mục không tồn tại hoặc đã bị ẩn'})
+            }
+            return res.status(200).send({category: category[0]})
+        } catch (err) {
+            return res.status(500).send({message: 'Lỗi máy chủ'})
+        }
+    }
+
     async handleCreateCategory(requestBody: {
         name: string,
         description: string,
@@ -156,12 +198,15 @@ class CategoryRepo {
                 return res.status(400).send({message: 'ID danh mục không hợp lệ'})
             }
             const categoryObjectId = new ObjectId(categoryId)
-            const category = await Category.findOne({_id: categoryObjectId})
+            const category = await Category.findOne({_id: categoryObjectId, is_deleted: false})
             if (!category) {
-                return res.status(404).send({message: 'Danh mục không tồn tại'})
+                return res.status(404).send({message: 'Danh mục không tồn tại hoặc đã bị ẩn'})
             }
 
-            const {error} = updateCategorySchema.body.validate(updateCategoryData, {abortEarly: false})
+            const {error} = updateCategorySchema.body.validate(updateCategoryData, {
+                abortEarly: false,
+                allowUnknown: true
+            })
             if (error) {
                 return res.status(400).send({
                     message: 'Lỗi yêu cầu',
@@ -183,10 +228,113 @@ class CategoryRepo {
                 })
             }
 
-            /* Update */
             category.name = updateCategoryData.name
             category.description = updateCategoryData.description
-            await category.save()
+
+            const attributes = await Attribute.find({category_id: new ObjectId(categoryId), is_deleted: false})
+            if (attributes?.length === 0) {
+                /* Add new attributes if has no attributes in db */
+                await Promise.all([
+                    category.save(),
+                    Attribute.insertMany([...updateCategoryData.attributes?.map(item => ({
+                        ...(_.omit(item, '_id')),
+                        category_id: new ObjectId(categoryId)
+                    }))])
+                ])
+            } else {
+                /* Check attribute ID */
+                let invalidIds: string[] = []
+                updateCategoryData.attributes?.forEach(attr => {
+                    if (attr?._id && !ObjectId.isValid(attr._id as string)) {
+                        invalidIds = [...invalidIds, String(attr._id)]
+                    }
+                })
+                if (invalidIds?.length > 0) {
+                    return res.status(400).send(`ID ${invalidIds?.join(', ')} không hợp lệ`)
+                }
+
+                /* Check valid records and id */
+                let oldRequestAttributeIds: string[] = []
+                updateCategoryData.attributes?.forEach(item => {
+                    if (item.hasOwnProperty('_id')) {
+                        // @ts-ignore
+                        oldRequestAttributeIds = [...oldRequestAttributeIds, item._id]
+                    }
+                })
+                const existIds = attributes?.map(item => String(item._id))
+                let isValid = checkIfTwoArrayEqualsUnordered(oldRequestAttributeIds, existIds)
+                if (!isValid) {
+                    return res.status(400).send({message: 'Tồn tại thuộc tính không thuộc danh mục này hoặc không đủ thuộc tính'})
+                }
+
+                /* Check duplicate attribute label */
+                const duplicateLabels: string[] = countDuplicateValue(updateCategoryData.attributes, 'label')
+                if (duplicateLabels?.length > 0) {
+                    return res.status(400).send({
+                        message: 'Lỗi yêu cầu',
+                        details: {
+                            label: `Thuộc tính ${duplicateLabels?.join(', ')} bị lặp lại`
+                        }
+                    })
+                }
+
+                /* Check duplicate values in initial values if exist */
+                const attributesHaveOptions = updateCategoryData.attributes?.filter(item => item?.initial_value)
+                if (attributesHaveOptions?.length > 0) {
+                    let isError = false
+                    for (let i = 0; i < attributesHaveOptions?.length; i++) {
+                        const item: IAttribute = attributesHaveOptions[i]
+                        if (item.initial_value && item.initial_value?.length > 0) {
+                            const duplicateOptions: string[] = countDuplicateValue(item.initial_value)
+                            if (duplicateOptions?.length > 0) {
+                                isError = true
+                                break
+                            }
+                        }
+                    }
+                    if (isError) {
+                        return res.status(400).send({
+                            message: 'Lỗi yêu cầu',
+                            details: {
+                                initialValues: `Các giá trị lựa chọn không được trùng nhau trong cùng 1 thuộc tính`
+                            }
+                        })
+                    }
+                }
+
+                /* Update */
+                const updatePromises = updateCategoryData.attributes?.map(async (item) => {
+                    const updatedAttribute = (item?._id && ObjectId.isValid(item?._id as string) &&
+                        attributes?.some(attr => String(attr._id) === String(item?._id))) ?
+                        {
+                            ...item,
+                            category_id: new ObjectId(categoryId)
+                        } : {
+                            ...(_.omit(item, '_id')),
+                            category_id: new ObjectId(categoryId)
+                        }
+
+                    if (item?._id) {
+                        const existAttribute = attributes?.find(attr => String(attr._id) === String(item?._id))?.toObject()
+                        // @ts-ignore
+                        const {createdAt, updatedAt, category_id, __v, ...existAttrWithoutRedundant} = existAttribute
+
+                        if (_.isEqual({
+                            ...existAttrWithoutRedundant,
+                            _id: String(existAttrWithoutRedundant._id)
+                        }, item)) {
+                            return new Promise((resolve) => {
+                                return resolve(() => {
+                                })
+                            })
+                        }
+
+                        return Attribute.findOneAndUpdate({_id: item?._id}, updatedAttribute)
+                    }
+                    return Attribute.create(updatedAttribute)
+                })
+                await Promise.all([category.save(), ...updatePromises])
+            }
 
             return res.status(200).send({message: 'Cập nhật danh mục thành công'})
 
@@ -211,15 +359,20 @@ class CategoryRepo {
             }
             const categoryObjectId = new ObjectId(categoryId)
             let category;
+            category = await Category.find({_id: categoryObjectId, is_deleted: false})
+            if (category?.length > 1) {
+                return res.status(400).send({message: 'Một danh mục cùng tên đang được hiển thị'})
+            }
+
             if (type === VISIBLE_ACTION.HIDE) {
                 category = await Category.findOne({_id: categoryObjectId, is_deleted: false})
                 if (!category) {
-                    return res.status(404).send({message: 'Danh mục không tồn tại hoặc đã bị ẩn trước đó'})
+                    return res.status(400).send({message: 'Danh mục không tồn tại hoặc đã bị ẩn trước đó'})
                 }
             } else {
                 category = await Category.findOne({_id: categoryObjectId, is_deleted: true})
                 if (!category) {
-                    return res.status(404).send({message: 'Danh mục đang được hiển thị'})
+                    return res.status(400).send({message: 'Danh mục đang được hiển thị'})
                 }
             }
 

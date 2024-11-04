@@ -9,9 +9,9 @@ export interface IRequestAttribute {
 }
 
 export interface IAttribute extends Document, IRequestAttribute {
-    _id: Schema.Types.ObjectId;
+    _id: Schema.Types.ObjectId | string;
     is_deleted: boolean,
-    category_id: Schema.Types.ObjectId
+    category_id: Schema.Types.ObjectId | string
 }
 
 const AttributeSchema: Schema<IAttribute> = new Schema<IAttribute>({
