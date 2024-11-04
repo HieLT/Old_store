@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import Post , { IPost} from '../models/post';
 
 class PostRepo {
@@ -9,11 +10,11 @@ class PostRepo {
             throw err;
         }
     }
-    async createPost(isValidate : boolean, post: Partial <IPost>): Promise<any> {
+    async createPost(isValidate : boolean, post: Partial <IPost>, session: ClientSession): Promise<any> {
         try{
             const newPost = new Post(post);
 
-            const result = await newPost.save({validateBeforeSave: isValidate});
+            const result = await newPost.save({session, validateBeforeSave: isValidate});
           
             return result ? result: false;
         } catch(err){
@@ -26,7 +27,7 @@ class PostRepo {
             const result = await Post.findByIdAndUpdate(postId, post);
             return result ? true : false;
         } catch(err){
-            return false;
+            throw err;
         }
     }
 

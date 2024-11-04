@@ -3,12 +3,12 @@ import Baby, { IBaby } from "../models/baby";
 
 class BabyRepo {
     async getBaby(babyId: string): Promise<IBaby | null> {
-        try{            
-            const result = await Baby.findOne({ _id: babyId});
-            
+        try {
+            const result = await Baby.findOne({ _id: babyId });
+
             return result ? result : null;
-        } catch(err){
-            return null;
+        } catch (err) {
+            throw err;
         }
     }
     async getBabies(parentId: string): Promise<IBaby[]> {
@@ -20,40 +20,40 @@ class BabyRepo {
             throw err;
         }
     }
-    
+
     async createBaby(baby: Partial<IBaby>): Promise<boolean> {
-        try {     
-            const create : Partial<IBaby> = { ...baby }; 
+        try {
+            const create: Partial<IBaby> = { ...baby };
 
             const result = await Baby.create(create);
 
             return result ? true : false;
-        } catch (e) {
-            throw e
+        } catch (err) {
+            throw err;
         }
     }
-    
+
     async updateBaby(id: string, baby: Partial<IBaby>): Promise<boolean> {
         try {
-            const update : Partial<IBaby> = {...baby};
+            const update: Partial<IBaby> = { ...baby };
 
-            const result =  await Baby.findOneAndUpdate({ _id: id }, update, { runValidators: true });
-            
+            const result = await Baby.findOneAndUpdate({ _id: id }, update, { runValidators: true });
+
             return result ? true : false;
-            
-        } catch {
-            return false;
+
+        } catch (err) {
+            throw err;
         }
     }
 
-    async deleteBaby(id : string): Promise<boolean> {
+    async deleteBaby(id: string): Promise<boolean> {
         try {
             const result = await Baby.findByIdAndDelete(id);
 
-            return result ? true : false ;
-            
-        } catch {
-            return false;
+            return result ? true : false;
+
+        } catch (err) {
+            throw err;
         }
     }
 }

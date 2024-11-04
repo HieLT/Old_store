@@ -16,14 +16,16 @@ const ProductSchema = new Schema<IProduct>({
         required: [true,'Tên product là thuộc tính bắt buộc']
     },
     description: {
-        type: String
+        type: String,
+        default: null
     },
     images: {
         type: [String],
         required: [true,'images là thuộc tính bắt buộc']
     },
     price: {
-        type: Number
+        type: Number,
+        default: null
     },
     condition: {
         type: String,

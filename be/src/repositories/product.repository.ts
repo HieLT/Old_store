@@ -32,13 +32,14 @@ class ProductRepo {
     }
     async updateProduct(
         isValidate: boolean,
+        id : string,
         product : any,
         session: ClientSession
     ): Promise<any> {
         try{
             const update : Partial<IProduct>  = {...product};
 
-            const result = await Product.findOneAndUpdate({_id : product.id} , update , {runValidators: isValidate});
+            const result = await Product.findOneAndUpdate({_id : id} , update , {runValidators: isValidate});
 
             return result ? result : false;
 

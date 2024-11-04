@@ -23,6 +23,7 @@ const AttributeProduct = new Schema<IAttributeProduct>({
     },
     value: {
         type: Schema.Types.Mixed,
+        default: null,
         validate: {
             validator: async function (input: string) {
                 if (!input || input.length === 0) throw new Error(`attribute_id:${this.attribute_id} Đầu vào là bắt buộc`);

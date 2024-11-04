@@ -45,78 +45,71 @@ class PostController {
             const user = req.account;
             const dataInput = req.body;
 
-            const { title, location, is_draft } = dataInput;
-            const { name, product_attributes, condition, images, category_id, description, price } = dataInput.product || {};
+            const { post, product, is_draft } = dataInput;
+            const { product_attributes, product_only } = product;
 
             const createdProduct = await ProductRepo.createProduct(
                 !is_draft,
-                {
-                    name: name,
-                    description: description,
-                    price: price,
-                    condition: condition,
-                    images: images,
-                    category_id: category_id
-                },
+                product_only,
                 session
             );
 
-            if (product_attributes || !is_draft) {
-
-                if (!is_draft) {
-                    if (!Array.isArray(product_attributes)) {
-                        throw new Error('Thuộc tính product_attributes phải là một mảng chứa các đối tượng key-value.');
-                    }
-
-                    const missingAttributes = await getMissingAttributesRequired(product_attributes, category_id);
-
-                    const missingLabels = missingAttributes.map((attr: IAttribute) => attr.label);
-
-                    if (missingLabels.length > 0) {
-                        throw new Error(`Thiếu các thuộc tính bắt buộc: ${missingLabels.join(', ')}`);
-                    }
-                }
-
-                // Update productAttributes to include the productId for each attribute before creeate product_attribute
-
-
-                const updatedAttributes = product_attributes.map((attribute: IAttributeProduct) => ({
+            // Create required product_attributes
+            let mapped_attributes;
+            try {
+                mapped_attributes = product_attributes.map((attribute: IAttributeProduct) => ({
                     product_id: createdProduct._id,
                     attribute_id: attribute.attribute_id,
                     value: attribute.value
                 }));
-
-                // Create product attributes concurrently   
-                await Promise.all(
-                    updatedAttributes.map((attribute: any) =>
-                        AttributeProductRepo.createAttributeProduct(!is_draft, attribute, session)
-                    )
-                );
-
-
-                // Add remaining attributes with null values
-                const attributeLeft = await getAttributesLeft(product_attributes, category_id);
-                const attributesLeftToCreate = attributeLeft.map((attribute: IAttributeProduct) => ({
-                    product_id: createdProduct._id,
-                    attribute_id: attribute._id,
-                    value: null
-                }));
-
-                await Promise.all(attributesLeftToCreate.map((attribute: any) =>
-                    AttributeProductRepo.createAttributeProduct(false, attribute, session)
-                ));
-
+            } catch {
+                throw new Error('Thuộc tính product_attributes phải là một mảng chứa các đối tượng key-value.');
             }
+
+
+            await Promise.all(
+                mapped_attributes.map((attribute: any) =>
+                    AttributeProductRepo.createAttributeProduct(true, attribute, session)
+                )
+            );
+
+
+            // Create remaining product_attributes with value is null
+            const attributeLeft = await getAttributesLeft(product_attributes, product.category_id);
+            const attributesLeftToCreate = attributeLeft.map((attribute: IAttributeProduct) => ({
+                product_id: createdProduct._id,
+                attribute_id: attribute._id,
+                value: null
+            }));
+
+            await Promise.all(attributesLeftToCreate.map((attribute: any) =>
+                AttributeProductRepo.createAttributeProduct(!is_draft, attribute, session)
+            ));
+
+            // Check required product_attributes 
+            if (!is_draft) {
+                const getAttributeProduct = await AttributeProductRepo.getAttributeProduct(createdProduct._id);
+
+                const missingAttributes = await getMissingAttributesRequired(getAttributeProduct, product.category_id);
+
+                const missingLabels = missingAttributes.map((attr: IAttribute) => attr.label);
+
+                if (missingLabels.length > 0) {
+                    throw new Error(`Thiếu các thuộc tính bắt buộc: ${missingLabels.join(', ')}`);
+                }
+            }
+
 
             const createdPost = await PostRepo.createPost(
                 !is_draft,
                 {
-                    title: title,
+                    ...post,
                     poster_id: user._id,
                     product_id: createdProduct._id,
-                    location: location,
                     status: is_draft ? "Draft" : "Pending"
-                });
+                },
+                session
+            );
 
             await session.commitTransaction();
 
@@ -161,27 +154,54 @@ class PostController {
             res.status(400).send(err.message)
         }
     }
-    //     async updatePost(postId: string, req: CustomRequest, res: Response): Promise<void> {
-    //         try {
-    //             const user = req.account;
-    //             const update = req.body
+    async updatePost(req: CustomRequest, res: Response): Promise<void> {
+        const session = await mongoose.startSession(); // Start a session
+        session.startTransaction(); // Start a transaction
+        try {
+            const user = req.account;
+            const dataInput = req.body;
 
-    //             const { postId, name, attributes, condition, images, category_id, description, price, status } = update.product || {};
+            const id = req.params;
+            const { post, product } = dataInput;
+            const { product_attributes, product_only } = product;
 
-    //             const post = await PostRepo.getPost(postId);
-    //             if (post.poster_id !== user._id) {
-    //                 res.status(403).send("Không có quyền thay đổi post này");
-    //                 return;
-    //             }
+            if (id) throw new Error('Thiếu post_id');
 
-    //             const updatedProduct = await ProductRepo.updateProduct()
+            let is_draft: boolean = false;
+
+            const getPost = await PostRepo.getPost(id);
+            const getProduct = await ProductRepo.getProduct(getPost.category_id);
+            if (getPost.poster_id !== user._id) throw new Error('Không có quyền sửa đổi post này')
+            if (post.status === 'Draft' && getPost.status === 'Draft') is_draft = true;
+
+            const updatedProduct = await ProductRepo.updateProduct(!is_draft, post.product_id, product_only, session);
+
+            let mapped_attributes = product_attributes.map((attribute: any) => ({
+                ...attribute,
+                product_id: post.product_id,
+            }));
+
+            // Create or update product attributes concurrently   
+            await Promise.all(
+                mapped_attributes.map((attribute: any) =>
+                    AttributeProductRepo.updateAttributeProduct(!is_draft, mapped_attributes, session)
+                )
+            );
+
+            //check if all the required attributes are included 
+            if (post.status !== 'Draft') {
+                const getAttributes = AttributeProductRepo.getAttributeProduct(getProduct.attribute_id);
+            }
 
 
-    //         }
-    //         } catch {
-    //     res.status(500);
-    // }
-    //     }
+
+        } catch (err: any) {
+            await session.abortTransaction();
+            res.status(400).send(err.message);
+        } finally {
+            session.endSession();
+        }
+    }
 
 }
 

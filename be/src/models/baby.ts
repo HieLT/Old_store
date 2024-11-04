@@ -1,3 +1,4 @@
+import { boolean } from "joi";
 import { model, Schema } from "mongoose";
 
 export interface IBaby {
@@ -7,10 +8,9 @@ export interface IBaby {
   birthdate: Date;
   parent_id: Schema.Types.ObjectId;
   gender: 'male' | 'female';
-  weight: number;  
-  height: number; 
-  shoe_size: number; 
-  clothing_size: number;  
+  weight: number;
+  height: number;
+  is_deleted: boolean
 };
 
 const Baby = new Schema<IBaby>({
@@ -39,39 +39,29 @@ const Baby = new Schema<IBaby>({
   },
   weight: {
     type: Number,
+    default: null,
     validate: {
-        validator: function(weight: number) {
-            return weight >= 2.5 && weight <=35
-        },
-        message: 'Cân nặng của bé phải trong khoảng 2.5 - 30kg'
+      validator: function (weight: number) {
+        if (weight === null) return true;
+        return weight >= 2.5 && weight <= 25
+      },
+      message: 'Cân nặng của bé phải trong khoảng 2.5 - 25kg'
     }
   },
   height: {
     type: Number,
+    default: null,
     validate: {
-        validator: function(height: number) {
-            return height >= 46 && height <=160
-        },
-        message: 'Chiều cao của bé phải trong khoảng 46 - 160cm'
+      validator: function (height: number) {
+        if (height == null) return true;
+        return height >= 46 && height <= 100
+      },
+      message: 'Chiều cao của bé phải trong khoảng 46 - 100cm'
     }
   },
-  shoe_size: {
-    type: Number,
-    validate: {
-        validator: function(size: number) {
-            return size >=16 && size <=36
-        },
-        message: 'Size giày của bé phải trong khoảng 16 - 36'
-    }
-  },
-  clothing_size: {
-    type: Number,
-    validate: {
-        validator: function(size: number) {
-            return size > 0 && size <=12
-        },
-        message: 'Size quần áo của bé phải trong khoảng 1 - 12'
-    }
+  is_deleted: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

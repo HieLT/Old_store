@@ -1,174 +1,176 @@
-import path from 'path'; 
+import path from 'path';
 import { Request, Response } from "express";
-import CloudinaryService from '../services/cloudinary'; 
+import CloudinaryService from '../services/cloudinary';
 import AdminRepo from '../repositories/admin.repository';
 import UserRepo from '../repositories/user.repository';
 import validatePassword from '../utils/validatePassword';
-import validateEmail from "email-validator";
 import { IAdmin } from '../models/admin';
 
 interface MulterRequest extends Request {
     files: Express.Multer.File[];
 }
 interface CustomRequest extends Request {
-    account?: any; 
+    account?: any;
 }
 
 
 class AdminController {
-    async getProfile(req: CustomRequest, res: Response) :Promise<void> {
-        try{
-            const admin = req.account as IAdmin;
-            res.status(200).send(admin);
-        } catch{
-            res.status(500);
+    async getProfile(req: CustomRequest, res: Response): Promise<void> {
+        try {
+            const account = req.account as IAdmin;
+            res.status(200).send(account);
+        } catch(err) {
+            res.status(400).send(err);
         }
     }
 
     async searchAdmin(req: Request, res: Response): Promise<void> {
-        try{
-            const{ searchKey, page , limit } = req.body;
-            const admins = await AdminRepo.searchAdmin(searchKey,page,limit) ;
-            res.status(200).send(admins)
-        } catch {
-            res.status(500);
+        try {
+            const { keywords, page, limit } = req.params;
+            const admins = await AdminRepo.searchAdmin(keywords, Number(page), Number(limit));
+            res.status(200).send(admins);
+        } catch(err) {
+            res.status(400).send(err);
+        }
+    }
+
+    async searchUser(req: Request, res: Response): Promise<void> {
+        try {
+            const { keywords, page, limit } = req.params;
+            const users = await UserRepo.searchUser(keywords, Number(page), Number(limit));
+            res.status(200).send(users);
+        } catch(err) {
+            res.status(400).send(err);
         }
     }
 
     async updateAdmin(req: CustomRequest, res: Response): Promise<void> {
         try {
-            const update = req.body;
-            const admin = req.account;
-            if (admin.password && !validatePassword(admin.password)) {
+            const admin = req.body.admin;
+            const account = req.account;
+            if (account.password && !validatePassword(account.password)) {
                 res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
                 return;
             }
-            if ('is_delete' in update) {
+            if ('is_deleted' in admin) {
                 res.status(403).send('Không có quyền truy cập');
             }
-            const result = await AdminRepo.updateAdmin(admin._id, update);
+            const result = await AdminRepo.updateAdmin(admin._id, admin);
 
             result ? res.status(200).send('Cập nhật thành công') : res.status(400).send('Cập nhật thất bại');
-            
-        } catch {
-            res.status(500);
+
+        } catch(err) {
+            res.status(400).send(err);
         }
     }
 
     async updateAvatar(req: CustomRequest, res: Response): Promise<void> {
-        try{
+        try {
             const multerReq = req as MulterRequest;
-            const admin = req.account;
-            const files = multerReq.files ;
-        
+            const account = req.account;
+            const files = multerReq.files;
+
             if (files.length > 0) {
-                const oldUrl = admin.avatar;
+                const oldUrl = account.avatar;
                 if (oldUrl) CloudinaryService.deleteImage(oldUrl);
-    
+
                 const images = files.map(file => {
                     const baseName = path.basename(file.originalname, path.extname(file.originalname));
                     return {
                         buffer: file.buffer,
-                        originalname: baseName 
+                        originalname: baseName
                     };
                 });
-        
+
                 CloudinaryService.uploadImages(images, 'Old_store/user').then(uploadResults => {
                     const avatarUrl = uploadResults[0];
-                    AdminRepo.updateAdmin(admin._id, { avatar: avatarUrl }).catch(error => {
+                    AdminRepo.updateAdmin(account._id, { avatar: avatarUrl }).catch(error => {
                         console.error(error);
                     });
                 }).catch(error => {
                     console.error(error);
                 });
-         
+
                 res.status(200).send('Cập nhật thành công, đang xử lý ảnh...');
             } else {
                 res.status(400).send('Không có ảnh upload');
             }
-        }catch {
-            res.status(500);
+        } catch(err){
+            res.status(400).send(err);
         }
-        
+
     }
 
-    async createAdmin(req:Request, res:Response) :Promise<void> {
-        // try{
-        // const newAdmin = req.body;
-        //
-        // if(!newAdmin.email || !validateEmail.validate(newAdmin.email)){
-        //     res.status(400).send('Email không đáp ứng yêu cầu');
-        //     return;
-        // }
-        //
-        // if(!newAdmin.password || !validatePassword(newAdmin.password)){
-        //     res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
-        //     return;
-        // }
-        //
-        // const adminExisted = await AdminRepo.getAdminByEmail(newAdmin.email);
-        //
-        // if (adminExisted.Existed) {
-        //     res.status(400).send('Người dùng đã tồn tại');
-        //     return;
-        // }
-        //
-        // const result = await AdminRepo.createAdmin(newAdmin);
-        // result ? res.status(201).send('Thêm mới admin thành công')
-        // : res.status(400).send('Tạo mới admin không thành công');
-        // } catch{
-        //     res.status(500)
-        // }
-    }
+    async createAdmin(req: Request, res: Response): Promise<void> {
+        try {
+            const admin = req.body.admin;
 
-    async deleteAdmin(req: Request, res: Response) : Promise<void> {
-        try{
-            const adminId = req.body.adminId;
-            if (!validateEmail.validate(adminId)) {
-                res.status(400).send('Email không hợp lệ');
+            if (!admin.password || !validatePassword(admin.password)) {
+                res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
                 return;
             }
-            const result = await AdminRepo.deleteAdmin(adminId);
+
+            const adminExisted = await AdminRepo.getAdminByUsername(admin.user_name);
+
+            if (adminExisted.Existed) {
+                res.status(400).send('Người dùng đã tồn tại');
+                return;
+            }
+
+            const result = await AdminRepo.createAdmin(admin);
+            result ? res.status(201).send('Thêm mới admin thành công')
+                : res.status(400).send('Tạo mới admin không thành công');
+        } catch(err) {
+            res.status(400).send(err);
+        }
+    }
+
+    async deleteAdmin(req: Request, res: Response): Promise<void> {
+        try {
+            const id = req.params.id;
+
+            const result = await AdminRepo.deleteAdmin(id);
+
             result ? res.status(200) : res.status(400).send('Xóa tài khoản không thành công');
-        } catch{
-            res.send(500)
+        } catch(err) {
+            res.send(400).send(err);
         }
     }
 
     async deleteUser(req: Request, res: Response): Promise<void> {
-        try{
-            const userId= req.body.userId;
+        try {
+            const id = req.params.id;
 
-            const result = await UserRepo.deleteUser(userId);
+            const result = await UserRepo.deleteUser(id);
 
-            result ? res.status(200): res.status(400).send('Xóa tài khoản không thành công');
-        } catch{
-            res.send(500);
+            result ? res.status(200) : res.status(400).send('Xóa tài khoản không thành công');
+        } catch(err) {
+            res.send(400).send(err);
         }
     }
 
-    async restoreAdmin(req: Request, res:Response): Promise<void> {
-        try{
-            const adminId = req.body.adminId;
+    async restoreAdmin(req: Request, res: Response): Promise<void> {
+        try {
+            const id = req.params.id;
 
-            const result = await AdminRepo.restoreAdmin(adminId);
+            const result = await AdminRepo.restoreAdmin(id);
 
-            result ? res.status(200): res.status(400).send('Khôi phục thất bại');
-        } catch{
-            res.send(500);
+            result ? res.status(200) : res.status(400).send('Khôi phục thất bại');
+        } catch(err) {
+            res.send(400).send(err);
         }
     }
-    
-    async restoreUser(req: Request, res:Response): Promise<void> {
-        try{
-            const userId = req.body.userId;
 
-            const result = await UserRepo.restoreUser(userId);
+    async restoreUser(req: Request, res: Response): Promise<void> {
+        try {
+            const id= req.params.id;
 
-            result ? res.status(200): res.status(400).send('Khôi phục thất bại');
+            const result = await UserRepo.restoreUser(id);
 
-        } catch{
-            res.send(500);
+            result ? res.status(200) : res.status(400).send('Khôi phục thất bại');
+
+        } catch(err) {
+            res.send(400).send(err);
         }
     }
 }

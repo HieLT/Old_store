@@ -13,9 +13,10 @@ adminRouter.get('/get-profile', [authentication, isNotDeleted], adminController.
 adminRouter.patch('/update',[authentication, isNotDeleted, isAdmin], adminController.updateAdmin);
 adminRouter.patch('/update-avatar',[authentication, isNotDeleted, Multer.getUpload().array('files')], adminController.updateAvatar);
 adminRouter.post('/create', [authentication, isNotDeleted, isSuperAdmin], adminController.createAdmin);
-adminRouter.put('/delete-admin', [authentication, isNotDeleted, isSuperAdmin], adminController.deleteAdmin);
-adminRouter.put('/delete-user', [authentication, isNotDeleted, isAdmin], adminController.deleteUser);
-adminRouter.post('/get-admins', [authentication,isNotDeleted,isSuperAdmin], adminController.searchAdmin);
+adminRouter.patch('/delete-admin', [authentication, isNotDeleted, isSuperAdmin], adminController.deleteAdmin);
+adminRouter.patch('/delete-user', [authentication, isNotDeleted, isAdmin], adminController.deleteUser);
+adminRouter.get('/get-admins', [authentication,isNotDeleted,isSuperAdmin], adminController.searchAdmin);
+adminRouter.get('/get-users', [authentication,isNotDeleted,isSuperAdmin], adminController.searchUser);
 
 /* Manage category */
 adminRouter.get(
