@@ -111,8 +111,7 @@ class AuthController {
             //accont_role :  admin or user 
             let account ;
             if ( account_role === ACCOUNT_ROLE.USER) account = await UserRepo.getUserByEmail(email) ;
-            else account = await AdminRepo.getAdminByUsername(username, res);
-            console.log(account);
+            else account = await AdminRepo.getAdminByUsername(username);
             
             if (!account || account.is_google_account || account.is_delete) {
                 handleRefuseLogin(res, account);

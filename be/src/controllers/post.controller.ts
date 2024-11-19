@@ -5,8 +5,8 @@ import AttributeProductRepo from '../repositories/attribute_product.repository';
 import PostRepo from '../repositories/post.repository';
 import CloudinaryService from '../services/cloudinary';
 import mongoose from 'mongoose';
-import attribute, { IAttribute } from '../models/attribute';
-import attribute_product, { IAttributeProduct } from '../models/attribute_product';
+import { IAttribute } from '../models/attribute';
+import { IAttributeProduct } from '../models/attribute_product';
 
 interface CustomRequest extends Request {
     account?: any;
@@ -38,6 +38,29 @@ async function getAttributesLeft(productAttributes: any[], categoryId: string): 
 }
 
 class PostController {
+    async getOwnPosts (req: CustomRequest, res: Response): Promise<void> {
+        const user = req.account;
+        const { 
+            keywords = '', 
+            page = 1, 
+            status = '',
+            limit = 10
+        }: { 
+            keywords?: string; 
+            page?: number; 
+            status?: string;
+            limit?: number; 
+        } = req.query;
+        try{
+          
+            const post = await PostRepo.getPosts(user._id, keywords, status, page , limit);
+
+            res.status(200).send(post);
+
+        } catch(err: any) {
+            res.status(400).send(err.message);
+        }
+    }
     async createPost(req: CustomRequest, res: Response): Promise<void> {
         const session = await mongoose.startSession(); // Start a session
         session.startTransaction(); // Start a transaction
@@ -143,66 +166,20 @@ class PostController {
         }
 
     }
-    async getOwnPost(req: CustomRequest, res: Response): Promise<void> {
-        try {
-            const user = req.account;
+    async changeVisibility(req: CustomRequest, res: Response): Promise<any> {
+        const user = req.account;
+        const { is_visibility } : {is_visibility: boolean} = req.body.is_visibility;
+        const { id } = req.params;
+        try{
+            const post = await PostRepo.getPost(id);
+            if(!post) return res.status(404).send('Không có bài đăng');
+            if(post.poster_id !== user._id) return res.status(403).send('Không có quyền thay đổi');
+            
 
-            const result = PostRepo.getPost(user._id);
-
-            res.status(200).send(result);
-        } catch (err: any) {
-            res.status(400).send(err.message)
+        } catch(err: any) {
+            res.status(500).send(err.message)
         }
     }
-    async updatePost(req: CustomRequest, res: Response): Promise<void> {
-        const session = await mongoose.startSession(); // Start a session
-        session.startTransaction(); // Start a transaction
-        try {
-            const user = req.account;
-            const dataInput = req.body;
-
-            const id = req.params;
-            const { post, product } = dataInput;
-            const { product_attributes, product_only } = product;
-
-            if (id) throw new Error('Thiếu post_id');
-
-            let is_draft: boolean = false;
-
-            const getPost = await PostRepo.getPost(id);
-            const getProduct = await ProductRepo.getProduct(getPost.category_id);
-            if (getPost.poster_id !== user._id) throw new Error('Không có quyền sửa đổi post này')
-            if (post.status === 'Draft' && getPost.status === 'Draft') is_draft = true;
-
-            const updatedProduct = await ProductRepo.updateProduct(!is_draft, post.product_id, product_only, session);
-
-            let mapped_attributes = product_attributes.map((attribute: any) => ({
-                ...attribute,
-                product_id: post.product_id,
-            }));
-
-            // Create or update product attributes concurrently   
-            await Promise.all(
-                mapped_attributes.map((attribute: any) =>
-                    AttributeProductRepo.updateAttributeProduct(!is_draft, mapped_attributes, session)
-                )
-            );
-
-            //check if all the required attributes are included 
-            if (post.status !== 'Draft') {
-                const getAttributes = AttributeProductRepo.getAttributeProduct(getProduct.attribute_id);
-            }
-
-
-
-        } catch (err: any) {
-            await session.abortTransaction();
-            res.status(400).send(err.message);
-        } finally {
-            session.endSession();
-        }
-    }
-
 }
 
 
