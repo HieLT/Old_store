@@ -17,10 +17,9 @@ interface IAttribute {
 class AttributeRepo {
     async getAttribute(attributeId: string): Promise<any> {
         try {
-            const result = await Attribute.findById(attributeId);
-            return result;
+            return Attribute.findOne({_id: new ObjectId(attributeId), is_deleted: false});
         } catch (error) {
-            return null;
+            throw error;
         }
     }
     async getAttributesRequired(categoryId: string): Promise<any> {

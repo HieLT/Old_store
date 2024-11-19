@@ -6,18 +6,23 @@
   <component name="ChangeListManager">
     <list default="true" id="f593b65f-640f-47d6-b387-6d596d3ca833" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/be/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/be/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/be/src/controllers/attribute.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/controllers/attribute.controller.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/controllers/baby.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/controllers/baby.controller.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/controllers/category.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/controllers/category.controller.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/models/attribute.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/attribute.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/models/baby.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/baby.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/controllers/post.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/controllers/post.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/controllers/user.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/controllers/user.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/models/attribute_product.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/attribute_product.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/models/post.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/post.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/models/product.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/product.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/models/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/user.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/be/src/repositories/attribute.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/attribute.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/repositories/baby.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/baby.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/repositories/category.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/category.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/repositories/attribute_product.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/attribute_product.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/repositories/post.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/post.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/repositories/product.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/product.repository.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/be/src/requests/category.request.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/requests/category.request.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/routes/admin.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/routes/admin.route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/utils/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/utils/constants.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/utils/helpers.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/utils/helpers.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/routes/post.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/routes/post.route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/utils/enum.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/utils/enum.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/utils/multer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/utils/multer.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,8 +49,8 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;post&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/2024/chodocu/Old_store/be/src/repositories&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;fix/post&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/2024/chodocu/Old_store&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -58,6 +63,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\2024\chodocu\Old_store" />
       <recent name="E:\2024\chodocu\Old_store\be\src\repositories" />
       <recent name="E:\2024\chodocu\Old_store\be\src\routes" />
       <recent name="E:\2024\chodocu\Old_store\be\src\models" />
@@ -127,7 +133,17 @@
       <workItem from="1730451516942" duration="13000" />
       <workItem from="1730627996509" duration="288000" />
       <workItem from="1730630020069" duration="857000" />
-      <workItem from="1730688269994" duration="63000" />
+      <workItem from="1730688269994" duration="7454000" />
+      <workItem from="1730880221455" duration="713000" />
+      <workItem from="1731063813465" duration="5036000" />
+      <workItem from="1731222166556" duration="10834000" />
+      <workItem from="1731287519493" duration="12906000" />
+      <workItem from="1731384213530" duration="2576000" />
+      <workItem from="1731425221739" duration="391000" />
+      <workItem from="1731479225164" duration="4000" />
+      <workItem from="1731835971456" duration="7062000" />
+      <workItem from="1731915057471" duration="9039000" />
+      <workItem from="1731997306254" duration="654000" />
     </task>
     <servers />
   </component>
@@ -135,11 +151,38 @@
     <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="HEAD" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>

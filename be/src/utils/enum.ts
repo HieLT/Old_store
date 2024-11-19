@@ -2,7 +2,6 @@ export const CATEGORY_ATTRIBUTE_TYPE = {
     TEXT: 'text',
     DROPDOWN: 'dropdown',
     CHECKBOX: 'checkbox',
-    FILE_UPLOAD: 'file_upload',
     RADIO: 'radio',
     DATE: 'date',
     TIME: 'time',
@@ -22,4 +21,20 @@ export const VISIBLE_ACTION = {
 export const ACCOUNT_ROLE = {
     USER: 'user',
     ADMIN: 'admin',
+}
+
+export const POST_STATUS = {
+    PENDING: 'pending',
+    APPROVED: 'approved',
+    REJECTED: 'rejected',
+    HIDDEN: 'hidden',
+    DRAFT: 'draft',
+    DONE: 'done',
+    EXPIRED: 'expired'
+}
+
+export const PRODUCT_CONDITION = {
+    NEW: 'new',
+    USED: "used",
+    LIKE_NEW: "like_new"
 }

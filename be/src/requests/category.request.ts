@@ -3,8 +3,6 @@ import {CATEGORY_ATTRIBUTE_TYPE} from '../utils/enum';
 import {validatorMessages} from '../utils/constants';
 import {Types} from "mongoose";
 
-const {ObjectId} = Types
-
 export const createCategorySchema = {
     body: Joi.object({
         name: Joi.string()
