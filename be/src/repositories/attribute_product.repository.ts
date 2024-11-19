@@ -1,15 +1,25 @@
 import AttributeProduct, { IAttributeProduct } from "../models/attribute_product";
-import { ClientSession } from 'mongoose';
+import {ClientSession, Types} from 'mongoose';
+
+const {ObjectId} = Types
 
 class AttributeProductRepo {
-    async getAttributeProduct(product_id: string): Promise<any> {
-        try{
-            const results = await AttributeProduct.find({product_id});
-            return results;
-        }catch(err){
-            throw err;
+    async getAttributeProduct(attributeProductId: string) {
+        try {
+            return AttributeProduct.findOne({_id: new ObjectId(attributeProductId), is_deleted: false})
+        } catch (err) {
+            throw err
         }
     }
+
+    async getAllAttributesProduct(productId: string) {
+        try {
+            return AttributeProduct.find({product_id: new ObjectId(productId), is_deleted: false})
+        } catch (err) {
+            throw err
+        }
+    }
+
     async createAttributeProduct(
         isValidate: boolean,
         attributeProduct: Partial<IAttributeProduct>,
@@ -25,33 +35,33 @@ class AttributeProductRepo {
     }
 
     async updateAttributeProduct(
-        isValidate: boolean,
-        productAttributes: {
+        isDraft: boolean,
+        productAttribute: {
             id: string;
-            product_id: string;
-            attribute_id: string;
+            productId: string;
+            attributeId: string;
             value: any;
         },
         session: ClientSession
     ): Promise<boolean> {
         try {
             const updateOrCreate = {
-                product_id : productAttributes.product_id,
-                attribute_id : productAttributes.attribute_id,
-                value: productAttributes.value
+                product_id : productAttribute.productId,
+                attribute_id : productAttribute.attributeId,
+                value: productAttribute.value
             }
             const result = await AttributeProduct.findOneAndUpdate(
-                { _id: productAttributes.id },
+                { _id: productAttribute.id },
                 updateOrCreate,
                 {
                     session,
-                    runValidators: isValidate,
+                    runValidators: !isDraft,
                     upsert: true, // Create if not found
                     setDefaultsOnInsert: true, // Apply default values if creating
                 }
             );
-            return result ? true : false;
-        } catch (err){
+            return !!result;
+        } catch (err) {
             throw err;
         }
     }

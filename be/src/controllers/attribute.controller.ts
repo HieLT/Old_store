@@ -2,26 +2,26 @@ import {Request, Response} from "express";
 import attributeRepository from "../repositories/attribute.repository";
 import Category from "../models/category";
 import {checkIsObjectId} from "../utils/helpers";
+import {Types} from "mongoose";
+
+const {ObjectId} = Types
 
 class AttributeController {
-    async getAttributesOfCategory(req: Request, res: Response): Promise<void> {
+    async getAttributesOfCategory(req: Request, res: Response): Promise<any> {
         try {
-            const categoryId = req.body;
+            const categoryId: string = req.params.id;
             if (!checkIsObjectId(categoryId)) {
-                res.status(400).send({message: 'ID danh mục không hợp lệ'});
-                return;
+                return res.status(400).send({message: 'ID danh mục không hợp lệ'});
             }
-            const category = await Category.findOne({_id: categoryId, is_deleted: false})
+            const category = await Category.findOne({_id: new ObjectId(categoryId), is_deleted: false})
             if (!category) {
-                res.status(404).send({message: 'Danh mục không tồn tại'});
-                return;
+                return res.status(404).send({message: 'Danh mục không tồn tại hoặc đã bị ẩn'});
             }
 
             const attributes = await attributeRepository.getAttributes(categoryId);
-
-            attributes ? res.status(200).send({attributes}) : res.status(400).send('Không có attributes nào');
+            return res.status(200).send({attributes: attributes || []})
         } catch {
-            res.status(500);
+            return res.status(500)
         }
     }
 }
