@@ -1,6 +1,6 @@
 import Post, {IPost} from '../models/post';
 import {POST_STATUS} from "../utils/enum";
-import _ from "lodash";
+import _, {isSafeInteger} from "lodash";
 import {DEFAULT_GET_QUERY} from "../utils/constants";
 import {Types} from "mongoose";
 
@@ -14,6 +14,112 @@ interface IFilterQuery {
 }
 
 class PostRepo {
+    async getAllApprovedPosts(
+        {
+            search_key,
+            city,
+            category_ids,
+            price_from,
+            price_to,
+            condition,
+            page = 1,
+            column = 'createdAt',
+            sort_order = -1
+        }: any) {
+        try {
+            const searchFilter = search_key ? {title: {$regex: search_key, $options: 'i'}} : {}
+            let priceFilter = {}
+            if (price_from === 'none' && price_to === 'none') {
+                priceFilter = {'product.price': null}
+            } else if (price_from && price_to && (Number(price_from) <= Number(price_to))) {
+                priceFilter = {
+                    $and: [
+                        {'product.price': {$gte: Number(price_from)}},
+                        {'product.price': {$lte: Number(price_to)}}
+                    ]
+                }
+            }
+            const categoryIds = typeof category_ids === 'string' ? [new ObjectId(category_ids)] : category_ids?.map((item: string) => new ObjectId(item))
+            const conditions = typeof condition === 'string' ? [condition] : condition
+            let sortOrder = DEFAULT_GET_QUERY.SORT_ORDER
+            try {
+                if (sort_order !== undefined) {
+                    const order = Number(sort_order)
+                    if (isSafeInteger(order) && order >= -1 && order <= 1) {
+                        sortOrder = order === 0 ? DEFAULT_GET_QUERY.SORT_ORDER : order
+                    }
+                }
+            } catch (e) {
+                sortOrder = DEFAULT_GET_QUERY.SORT_ORDER
+            }
+
+            const commonQuery = [
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: 'product_id',
+                        foreignField: '_id',
+                        as: 'product'
+                    }
+                },
+                {$unwind: '$product'},
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'poster_id',
+                        foreignField: '_id',
+                        as: 'poster'
+                    }
+                },
+                {$unwind: '$poster'},
+                {
+                    $match: {
+                        'product.is_deleted': false,
+                        'poster.is_deleted': false,
+                        status: POST_STATUS.APPROVED,
+                        is_deleted: false
+                    }
+                }
+            ]
+
+            const [total, posts] = await Promise.all([
+                Post.aggregate([...commonQuery, {$count: 'total'}]),
+                Post.aggregate([
+                    ...commonQuery,
+                    {
+                        $match: {
+                            ...searchFilter,
+                            ...priceFilter,
+                            ...(city ? {'location.city': city} : {}),
+                            ...(condition ? {'product.condition': {$in: conditions}} : {}),
+                            ...(category_ids ? {'product.category_id': {$in: categoryIds}} : {})
+                        }
+                    },
+                    {$skip: (page - 1) * DEFAULT_GET_QUERY.PAGE_SIZE},
+                    {$limit: DEFAULT_GET_QUERY.PAGE_SIZE},
+                    {$sort: {[column]: sortOrder as any}},
+                    {
+                        $project: {
+                            __v: 0,
+                            'product.__v': 0,
+                            'product.is_deleted': 0,
+                            'poster.password': 0,
+                            'poster.is_deleted': 0,
+                            'poster.__v': 0
+                        }
+                    }
+                ])
+            ])
+
+            return {
+                total: total?.length > 0 ? total[0].total : 0,
+                posts
+            }
+        } catch (err) {
+            throw err
+        }
+    }
+
     async getAllMyPosts(posterId: string, status: string, {
         search,
         page,
@@ -116,6 +222,18 @@ class PostRepo {
     async restorePost(postId: string, post: Partial<IPost>): Promise<boolean> {
         try {
             const result = await Post.findByIdAndUpdate(postId, {is_deleted: false});
+            return result ? true : false;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async hideOrShowPost(postId: string, isVisibility: boolean): Promise<boolean> {
+        try {
+            const result = await Post.findByIdAndUpdate(
+                postId,
+                {status: isVisibility ? POST_STATUS.APPROVED : POST_STATUS.HIDDEN}
+            );
             return result ? true : false;
         } catch (err) {
             throw err;

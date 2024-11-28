@@ -16,14 +16,14 @@ export const updatePostSchema = {
             images: Joi.array().required().label('Ảnh sản phẩm').messages({...validatorMessages}),
             product_attributes: Joi.array().items(
                 Joi.object({
-                    _id: Joi.string().required().label('ID giá trị thuộc tính của danh mục').messages({...validatorMessages}),
                     attribute_id: Joi.string().required().label('ID thuộc tính của danh mục').messages({...validatorMessages}),
                     product_id: Joi.string().required().label('ID sản phẩm bài đăng').messages({...validatorMessages}),
                     value: Joi.string().required().label('Giá trị thuộc tính của sản phẩm').messages({...validatorMessages})
-                })).required().messages({...validatorMessages}),
+                }).unknown()).required().messages({...validatorMessages}),
             category_id: Joi.string().required().label('ID danh mục sản phẩm').messages({...validatorMessages}),
             price: Joi.number().allow(null).allow("").label('Giá sản phẩm').messages({...validatorMessages}),
-            condition: Joi.string().valid(PRODUCT_CONDITION).required().label('Tình trạng sản phẩm').messages({...validatorMessages})
-        })
+            condition: Joi.string().valid('like_new', 'new', 'used').required().label('Tình trạng sản phẩm').messages({...validatorMessages})
+        }),
+        status: Joi.string().messages({...validatorMessages})
     }),
 }

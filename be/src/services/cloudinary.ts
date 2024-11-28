@@ -46,12 +46,7 @@ class CloudinaryService {
     async deleteImage(url: string): Promise<void> {
         try {
             const publicId = `${getPublicIdFromUrl(url)}`
-            console.log('publicId', publicId);
-
             const result = await cloudinary.uploader.destroy(publicId);
-            console.log(result);
-
-
         } catch (error) {
             throw error;
         }

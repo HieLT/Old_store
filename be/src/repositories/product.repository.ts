@@ -12,10 +12,10 @@ class ProductRepo {
                 return null
             }
             // @ts-ignore
-            const productAttributes = await attributeProductRepository.getAllAttributesProduct(product?._id)
+            const productAttributes = await attributeProductRepository.getAllAttributesProduct(productId)
             product = {
                 ...product,
-                product_attributes: productAttributes ? productAttributes?.map(item => ({
+                product_attributes: productAttributes ? productAttributes?.map((item: any) => ({
                     _id: item?._id,
                     attribute_id: item?.attribute_id,
                     product_id: item?.product_id,
@@ -57,9 +57,8 @@ class ProductRepo {
                 update,
                 {
                     session,
-                    runValidators: isValidate
+                    // runValidators: !isValidate
                 });
-
             return result ? result : false;
         } catch (err) {
             throw err;

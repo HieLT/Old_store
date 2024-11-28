@@ -29,7 +29,7 @@ const Post = new Schema<IPost>({
     },
     status: {
         type: String,
-        enum: POST_STATUS,
+        enum: Object.values(POST_STATUS),
         default: 'pending'
     },
     location: {

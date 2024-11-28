@@ -9,7 +9,7 @@ export interface IAttributeProduct {
     product_id: Schema.Types.ObjectId,
     attribute_id: Schema.Types.ObjectId,
     value: string[] | string | null;
-    is_delete: boolean
+    is_deleted: boolean
 }
 
 const AttributeProduct = new Schema<IAttributeProduct>({
@@ -89,7 +89,7 @@ const AttributeProduct = new Schema<IAttributeProduct>({
             message: () => 'Loại thuộc tính không hợp lệ'
         },
     },
-    is_delete: {
+    is_deleted: {
         type: Boolean,
         default: false
     }

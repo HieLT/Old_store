@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import {Request, Response} from 'express';
 import ProductRepo from '../repositories/product.repository';
 import productRepository from '../repositories/product.repository';
 import AttributeRepo from '../repositories/attribute.repository';
@@ -6,13 +6,16 @@ import AttributeProductRepo from '../repositories/attribute_product.repository';
 import PostRepo from '../repositories/post.repository';
 import postRepository from '../repositories/post.repository';
 import CloudinaryService from '../services/cloudinary';
-import { IAttribute } from '../models/attribute';
-import { IAttributeProduct } from '../models/attribute_product';
-import mongoose, {isValidObjectId} from 'mongoose';
+import {IAttribute} from '../models/attribute';
+import {IAttributeProduct} from '../models/attribute_product';
+import mongoose, {isValidObjectId, Types} from 'mongoose';
 import {getDetailErrorMessage} from "../utils/helpers";
 import {updatePostSchema} from "../requests/post.request";
 import {POST_STATUS} from "../utils/enum";
 import {DEFAULT_GET_QUERY} from "../utils/constants";
+import User from "../models/user";
+
+const {ObjectId} = Types
 
 interface CustomRequest extends Request {
     account?: any;
@@ -20,12 +23,13 @@ interface CustomRequest extends Request {
 
 async function getMissingAttributesRequired(productAttributes: any[], categoryId: string): Promise<any> {
     const requiredAttributes = await AttributeRepo.getAttributesRequired(categoryId);
-    const requestAttributeIds = productAttributes?.map(item => item?.attribute_id)
+    const requestAttributeIds = productAttributes?.map(item => String(item?.attribute_id))
     let missingCount: IAttribute[] = []
 
     requiredAttributes?.forEach((item: IAttribute) => {
-        const existAttribute = requestAttributeIds?.find(id => id === item?._id)
-        if (!existAttribute || !existAttribute?.value) {
+        const existAttributeId = requestAttributeIds?.find(id => id === String(item?._id))
+        const attribute = productAttributes?.find((requestAttr: any) => String(requestAttr.attribute_id) === existAttributeId)
+        if (!attribute || (!attribute?.value && attribute.value !== 0)) {
             missingCount = [...missingCount, item]
         }
     })
@@ -34,12 +38,10 @@ async function getMissingAttributesRequired(productAttributes: any[], categoryId
 
 async function getAttributesLeft(productAttributes: any[], categoryId: string): Promise<any> {
     const allAttributes = await AttributeRepo.getAttributes(categoryId);
-
     const attributeIds = allAttributes.map((item: IAttribute) => item._id);
+    const idAttributeInput = productAttributes.map(item => String(item.attribute_id));
 
-    const idAttributeInput = productAttributes.map(item => item.attribute_id);
-
-    return attributeIds.filter((item: any) => !idAttributeInput?.includes(item.attribute_id));
+    return attributeIds.filter((item: any) => !idAttributeInput?.includes(String(item)));
 }
 
 const handleCheckObjectArrayType = (arr: any): void => {
@@ -56,6 +58,15 @@ const handleCheckObjectArrayType = (arr: any): void => {
 }
 
 class PostController {
+    async getAllPosts(req: Request, res: Response): Promise<any> {
+        try {
+            const result = await postRepository.getAllApprovedPosts(req.query)
+            return res.status(200).send(result)
+        } catch (err) {
+            return res.status(500).send({message: 'Lỗi máy chủ'})
+        }
+    }
+
     async getPostById(req: CustomRequest, res: Response): Promise<any> {
         try {
             const postId: string = req.params.id
@@ -67,17 +78,64 @@ class PostController {
             if (!post) {
                 return res.status(404).send({message: 'Bài đăng không tồn tại hoặc đã bị xóa'})
             }
-            const postProduct = await productRepository.getProduct(post?.product_id)
-            post = {
+            const isEditable = String(accountId) === String(post?.poster_id)
+            const [postProduct, poster] = await Promise.all([
+                productRepository.getProduct(String(post?.product_id)),
+                User.aggregate([
+                    {
+                        $match: {
+                            _id: new ObjectId(post?.poster_id),
+                            is_deleted: false
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'ratings',
+                            localField: '_id',
+                            foreignField: 'reviewee_id',
+                            as: 'reviewers'
+                        }
+                    },
+                    {
+                        $addFields: {
+                            reviewers: {
+                                $filter: {
+                                    input: "$reviewers",
+                                    as: "reviewer",
+                                    cond: {$eq: ["$$reviewer.reviewee_id", new ObjectId(post?.poster_id)]}
+                                }
+                            }
+                        }
+                    },
+                    {
+                        $addFields: {
+                            averageStars: {
+                                $ifNull: [{$avg: "$reviewers.stars"}, 0]
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            password: 0,
+                            is_deleted: 0
+                        }
+                    }
+                ])
+            ])
+            post = !isEditable ? {
+                ...post,
+                product: postProduct,
+                poster: poster?.[0]
+            } : {
                 ...post,
                 product: postProduct
             }
             return res.status(200).send({
                 post: post,
-                editable: String(accountId) === String(post?.poster_id)
+                editable: isEditable
             })
         } catch (err) {
-            return res.status(500).send({message: 'Interval Server Error'})
+            return res.status(500).send({message: 'Lỗi máy chủ'})
         }
     }
 
@@ -176,7 +234,6 @@ class PostController {
     async imagesUpload(req: Request, res: Response): Promise<void> {
         try {
             const files = req.files as Express.Multer.File[];
-            console.log(files)
             if (!files || files.length === 0) {
                 res.status(400).send('Không có ảnh');
                 return;
@@ -240,8 +297,8 @@ class PostController {
             if (!post) {
                 return res.status(404).send('Bài đăng không tồn tại hoặc đã bị xóa')
             }
-            if (post.poster_id !== user._id) {
-                return res.status(403).send("Bạn không có quyền chỉnh sửa bài đăng này");
+            if (String(post.poster_id) !== String(user._id)) {
+                return res.status(400).send("Bạn không có quyền chỉnh sửa bài đăng này");
             }
 
             // check request status
@@ -261,7 +318,7 @@ class PostController {
             } else if (requestStatus === POST_STATUS.DRAFT && currentStatus === POST_STATUS.DRAFT) {
                 status = POST_STATUS.DRAFT
             } else {
-                return res.status(403).send({message: 'Bạn không có quyền thay đổi trạng thái bài đăng'})
+                return res.status(400).send({message: 'Bạn không có quyền thay đổi trạng thái bài đăng'})
             }
 
             for (const item of product_attributes) {
@@ -287,32 +344,34 @@ class PostController {
                     price: price,
                     condition: condition,
                     images: images,
-                    category_id: category_id
+                    category_id: category_id,
+                    id: post?.product_id
                 },
                 session
             );
-            if (updateProductResult) {
-                await Promise.all(product_attributes.map((item: {
-                        _id: string,
-                        attribute_id: string,
-                        product_id: string,
-                        value: any
-                    }) =>
-                        AttributeProductRepo.updateAttributeProduct(
-                            requestStatus !== POST_STATUS.DRAFT,
-                            {
-                                id: item?._id,
-                                attributeId: item?.attribute_id,
-                                productId: item?.product_id,
-                                value: item?.value
-                            }, session)
-                ));
-
-                await PostRepo.updatePost(postId, {
-                    ...requestPost,
-                    status
-                })
+            if (!updateProductResult) {
+                throw new Error('Không tìm thấy sản phẩm thuộc bài đăng')
             }
+            await Promise.all(product_attributes.map((item: {
+                    _id: string,
+                    attribute_id: string,
+                    product_id: string,
+                    value: any
+                }) =>
+                    AttributeProductRepo.updateAttributeProduct(
+                        requestStatus !== POST_STATUS.DRAFT,
+                        {
+                            id: item?._id,
+                            attributeId: item?.attribute_id,
+                            productId: item?.product_id,
+                            value: item?.value
+                        }, session)
+            ));
+
+            await PostRepo.updatePost(postId, {
+                ...requestPost,
+                status
+            })
 
             await session.commitTransaction();
 
@@ -327,6 +386,28 @@ class PostController {
             res.status(400).send(err.message);
         } finally {
             session.endSession();
+        }
+    }
+
+    async changeVisibility(req: CustomRequest, res: Response): Promise<any> {
+        const user = req.account;
+        const isVisibility: any = req.body.is_visibility;
+        const {id} = req.params;
+        try {
+            const post = await PostRepo.getPost(id);
+            if (isVisibility === undefined || typeof isVisibility !== 'boolean') return res.status(400).send({message: 'Lỗi yêu cầu'})
+            if (!post) return res.status(404).send('Không có bài đăng');
+
+            const isInvalidChange: boolean = (!isVisibility && post.status !== POST_STATUS.APPROVED) || (isVisibility && post.status !== POST_STATUS.HIDDEN)
+            if (String(post.poster_id) !== String(user._id) || isInvalidChange) return res.status(400).send({message: 'Không có quyền thay đổi'});
+
+            const result = await PostRepo.hideOrShowPost(id, isVisibility);
+            if (!result) {
+                return res.status(500).send({message: 'Thay đổi thất bại'})
+            }
+            return res.status(200).send({message: 'Thay đổi trạng thái bài viết thành công'})
+        } catch (err: any) {
+            res.status(500).send(err.message)
         }
     }
 }

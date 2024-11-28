@@ -10,8 +10,6 @@ const userRouter = express.Router();
 userRouter.get('/get-profile',[authentication, isNotDeleted], userController.getProfile);
 userRouter.patch('/update',[authentication, isNotDeleted], userController.updateUser);
 userRouter.patch('/update-avatar',[authentication, isNotDeleted, multer.getUpload().single('file')], userController.updateAvatar);
-userRouter.get('/posts',[authentication, isNotDeleted], postController.getOwnPosts);
-
 
 userRouter.get('/html', (req, res) => {
 //   res.send(`

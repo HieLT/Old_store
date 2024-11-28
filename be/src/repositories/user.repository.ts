@@ -1,7 +1,19 @@
 import User, { IUser } from "../models/user";
 import bcrypt from "bcrypt";
+import {Types} from "mongoose";
+
+const {ObjectId} = Types
 
 class UserRepo {
+    async getUserById(id: string): Promise<any> {
+        try {
+            return User.findOne({ _id: new ObjectId(id), is_deleted: false });
+        }
+        catch (err) {
+            throw err;
+        }
+    }
+
     async getUserByEmail(email: any): Promise<any> {
         try {
             const user = await User.findOne({ email });

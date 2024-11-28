@@ -166,6 +166,7 @@ class AuthController {
     getNewAccessToken(req: Request, res: Response) {
         try {
             const { refreshToken } = req.body;
+            console.log(refreshToken)
             const decoded = jwt.verify(refreshToken,refreshSecret) as JwtPayload;
             const account_role = decoded.account_role;
             const payload = account_role === ACCOUNT_ROLE.USER ? {email: decoded.email} : {username: decoded.username}

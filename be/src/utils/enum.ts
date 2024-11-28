@@ -38,3 +38,9 @@ export const PRODUCT_CONDITION = {
     USED: "used",
     LIKE_NEW: "like_new"
 }
+
+export const MESSAGE_CONTENT_TYPE = {
+    TEXT: 'text',
+    LINK: 'link',
+    FILE: 'file'
+}
