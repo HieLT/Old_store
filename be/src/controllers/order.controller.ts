@@ -30,14 +30,14 @@ class OrderController {
 
     async getMySellingOrders(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
-        const { status, search_key, page, limit } = req.params;
+        const { status, search_key , page, limit } = req.query;
 
         try {
             try {
                 const orders = await OrderRepo.getMySellingOrders(
                     account._id,
-                    status,
-                    search_key,
+                    status as string,
+                    search_key as string,
                     Number(page),
                     Number(limit)
                 );
@@ -53,13 +53,13 @@ class OrderController {
 
     async getMyByingOrders(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
-        const { status, search_key, page, limit } = req.params;
+        const { status, search_key, page, limit } = req.query;
         try {
             try {
                 const orders = OrderRepo.getMyByingOrders(
                     account._id,
-                    status,
-                    search_key,
+                    status as string,
+                    search_key as string,
                     Number(page),
                     Number(limit)
                 );

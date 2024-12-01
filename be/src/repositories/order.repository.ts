@@ -3,7 +3,7 @@ import Order, { IOrder } from "../models/order";
 class OrderRepo {
     async getOrder(orderId: string): Promise<any> {
         try {
-            return await Order.findById({orderId, is_deleted : false})
+            return await Order.findById({ orderId, is_deleted: false })
                 .populate({
                     path: 'customer_id',
                     select: '-password',
@@ -19,19 +19,19 @@ class OrderRepo {
     async getMyByingOrders(
         userId: string,
         status: string,
-        searchKey: string,
+        searchKey: string = '',
         page: number = 1,
         limit: number = 10): Promise<any> {
         try {
-            const searchQuery = {
+            const searchQuery: any = {
                 customer_id: userId,
                 is_deleted: false,
-                status,
-                $or: [
-                    { _id: { $regex: searchKey, $options: 'i' } },
-                ]
+                _id: { $regex: searchKey, $options: 'i' },
+
             }
-            
+
+            if (status) searchQuery.status = status
+
             const orders = Order
                 .find(searchQuery)
                 .populate({
@@ -51,19 +51,18 @@ class OrderRepo {
     async getMySellingOrders(
         userId: string,
         status: string,
-        searchKey: string,
+        searchKey: string = '',
         page: number = 1,
         limit: number = 10): Promise<any> {
         try {
-            const searchQuery = {
+            const searchQuery: any = {
                 'post_id.poster_id': userId,
                 is_deleted: false,
-                status,
-                $or: [
-                    { _id: { $regex: searchKey, $options: 'i' } },
-                ]
+                _id: { $regex: searchKey, $options: 'i' },
+
             }
-            
+            if (status) searchQuery.status = status;
+
             const orders = Order
                 .find(searchQuery)
                 .populate({
