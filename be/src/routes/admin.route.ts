@@ -53,12 +53,12 @@ adminRouter.get(
 
 //post
 adminRouter.patch(
-    'manage-job/:post_id/aprrove' ,
+    '/manage-post/:post_id/aprrove',
     [authentication, isNotDeleted, isAdmin],
     postController.approvePost
 )
 adminRouter.patch(
-    'manage-job/:post_id/reject' ,
+    '/manage-post/:post_id/reject',
     [authentication, isNotDeleted, isAdmin],
     postController.rejectPost
 )

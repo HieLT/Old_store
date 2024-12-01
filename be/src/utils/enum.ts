@@ -60,3 +60,8 @@ export const PAYMENT_METHOD = {
     COD: 'cod',
     CREDIT : 'credit'
 }
+
+export const NOTIFICATION_TYPE =  {
+    ORDER : 'order',
+    POST : 'post'
+}
