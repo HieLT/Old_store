@@ -27,7 +27,7 @@ const OrderSchema = new Schema(
         },
         payment_method: {
             type: String,
-            enum: PAYMENT_METHOD,
+            enum: Object.values(PAYMENT_METHOD),
             required: true
         },
         customer_name: {
@@ -44,7 +44,7 @@ const OrderSchema = new Schema(
         },
         status: {
             type: String,
-            enum: ORDER_STATUS,
+            enum: Object.values(ORDER_STATUS),
             default: ORDER_STATUS.PROCESSING
         },
         total: {

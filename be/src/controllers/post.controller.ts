@@ -14,6 +14,7 @@ import {updatePostSchema} from "../requests/post.request";
 import {POST_STATUS} from "../utils/enum";
 import {DEFAULT_GET_QUERY} from "../utils/constants";
 import User from "../models/user";
+import { POST_STATUS } from '../utils/enum';
 
 const {ObjectId} = Types
 
@@ -395,6 +396,55 @@ class PostController {
             res.status(400).send(err.message);
         } finally {
             session.endSession();
+        }
+    }
+
+    async approvePost(req: Request, res: Response): Promise<void> {
+        const {post_id} = req.params;
+        try{
+            const post = await PostRepo.getPost(post_id);
+            if(!post){
+                res.status(404).send('Bài post không tồn tại');
+                return;
+            }
+            if(post.status !== POST_STATUS.PENDING){
+                res.status(400).send('Bài post này không thể duyệt');
+                return;
+            }
+            try{
+                await PostRepo.updatePost(post._id, {status: POST_STATUS.APPROVED })   ;    
+            }catch(err: any){
+                res.status(400).send(err.message);
+            }
+            res.status(200).send('Duyệt thành công');
+        } catch{
+            res.status(500).send('Lỗi server');
+        }
+    }
+
+    async rejectPost(req: Request, res: Response): Promise<void> {
+        const {post_id} = req.params;
+        try{
+            const post = await PostRepo.getPost(post_id);
+            if(!post){
+                res.status(404).send('Bài post không tồn tại');
+                return;
+            }
+            if(post.status !== POST_STATUS.PENDING &&
+                post.status !== POST_STATUS.APPROVED && 
+                post.status !== POST_STATUS.HIDDEN
+            ){
+                res.status(400).send('Bài post này không thể từ chối');
+                return;
+            }
+            try{
+                await PostRepo.updatePost(post._id, {status: POST_STATUS.REJECTED });    
+            }catch(err: any){
+                res.status(400).send(err.message);
+            }
+            res.status(200).send('Duyệt thành công');
+        } catch{
+            res.status(500).send('Lỗi server');
         }
     }
 

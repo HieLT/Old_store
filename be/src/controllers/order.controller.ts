@@ -20,7 +20,7 @@ class OrderController {
                 order.post_id.poster_id !== account._id
             ) {
                 res.status(400).send('Bạn không có quyền truy cập order này');
-                return; 
+                return;
             }
             res.status(200).send(order);
         } catch {
@@ -30,35 +30,45 @@ class OrderController {
 
     async getMySellingOrders(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
-        const { status, searchKey, page, limit } = req.params;
-    
-        try{
-            try{
-                const orders = await OrderRepo.getMySellingOrders(account._id, status, searchKey,Number(page), Number(limit) );
+        const { status, search_key, page, limit } = req.params;
+
+        try {
+            try {
+                const orders = await OrderRepo.getMySellingOrders(
+                    account._id,
+                    status,
+                    search_key,
+                    Number(page),
+                    Number(limit)
+                );
 
                 res.status(200).send(orders)
-            } catch(err: any){
+            } catch (err: any) {
                 res.status(400).send(err.message);
             }
-        } catch{
+        } catch {
             res.status(500).send('Lỗi server');
         }
     }
 
     async getMyByingOrders(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
-        const { status, searchKey, page, limit } = req.params;
-    
-        
-        try{
-            try{
-                const orders = OrderRepo.getMyByingOrders(account._id, status, searchKey, Number(page), Number(limit));
-                
+        const { status, search_key, page, limit } = req.params;
+        try {
+            try {
+                const orders = OrderRepo.getMyByingOrders(
+                    account._id,
+                    status,
+                    search_key,
+                    Number(page),
+                    Number(limit)
+                );
+
                 res.status(200).send(orders);
-            } catch(err:any){
+            } catch (err: any) {
                 res.status(400).send(err.message);
             }
-        } catch{
+        } catch {
             res.status(500).send('Lỗi server');
         }
     }
