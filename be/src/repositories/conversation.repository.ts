@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import {Types} from "mongoose";
 import Conversation from "../models/conversation";
 
-const {ObjectId} = Types
+const { ObjectId } = Types
 
 class ConversationRepo {
     async createOrUpdate(userId: string, participantId: string, latestPostId: string | null): Promise<any> {
