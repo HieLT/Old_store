@@ -25,10 +25,10 @@ class UserRepo {
     }
 
     async searchUser(
-        searchKey: string,
+        searchKey: string = '',
         page: number = 1,
         limit: number = 10
-    ): Promise<IUser[]> {
+    ): Promise<any> {
         try {
             const searchQuery = {
                 $or: [
@@ -41,7 +41,9 @@ class UserRepo {
                 .skip((page - 1) * limit)
                 .limit(limit) // Limit number of documents per page
                 .exec();
-            return users;
+
+            const total = await User.countDocuments(searchQuery);
+            return { users, total };
         } catch (err) {
             throw err;
         }
@@ -97,7 +99,7 @@ class UserRepo {
         try {
             const result = await User.findByIdAndUpdate({ _id: id }, { is_deleted: false });
 
-            !!result;
+            return !!result;
 
         } catch (err) {
             throw err;

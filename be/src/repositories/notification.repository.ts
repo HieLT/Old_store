@@ -6,7 +6,7 @@ class ConversationRepo {
         seen_at: Date | null = null,
         page: number = 1,
         limit: number = 10
-    ): Promise<INotification[]> {
+    ): Promise<any> {
         try {
             const searchQuery: any = {
                 receiver_id: userId,
@@ -15,12 +15,14 @@ class ConversationRepo {
             };
             if (seen_at === null) searchQuery.seen_at = null;
 
-            const result = await Notification.find(searchQuery)
+            const notifications = await Notification.find(searchQuery)
                 .skip((page - 1) * limit)
                 .limit(limit)
                 .exec();
 
-            return result;
+            const total = Notification.countDocuments(searchQuery);
+
+            return {notifications, total};
         } catch (err) {
             throw err;
         }

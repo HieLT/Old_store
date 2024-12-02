@@ -41,8 +41,9 @@ class OrderRepo {
                 .limit(limit)
                 .exec();
 
+            const total = Order.countDocuments(searchQuery);
 
-            return orders;
+            return {orders, total};
         } catch (err) {
             throw err;
         }

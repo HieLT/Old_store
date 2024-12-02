@@ -12,10 +12,10 @@ class AdminRepo {
         }
     }
     async searchAdmin(
-        searchKey: string,
+        searchKey: string ='',
         page: number = 1,
         limit: number = 10
-    ): Promise<IAdmin[]> {
+    ): Promise<any> {
         try {
             const searchQuery = {
                 role: 'admin',
@@ -29,7 +29,10 @@ class AdminRepo {
                 .skip((page - 1) * limit)
                 .limit(limit) // Limit number of documents per page
                 .exec();
-            return admins;
+            
+            const total= await Admin.countDocuments(searchQuery);
+
+            return {admins, total};
         } catch (err) {
             throw err;
         }
