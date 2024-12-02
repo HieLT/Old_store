@@ -6,22 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="f593b65f-640f-47d6-b387-6d596d3ca833" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/server.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/server.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/controllers/auth.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/controllers/auth.controller.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/controllers/post.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/controllers/post.controller.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/models/attribute_product.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/attribute_product.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/models/post.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/post.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/models/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/models/user.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/repositories/attribute_product.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/attribute_product.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/repositories/post.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/post.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/repositories/product.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/product.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/repositories/user.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/user.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/requests/post.request.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/requests/post.request.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/routes/index.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/routes/index.route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/routes/public.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/routes/public.route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/routes/user.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/routes/user.route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/services/cloudinary.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/services/cloudinary.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/utils/enum.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/utils/enum.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/repositories/conversation.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/conversation.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/services/socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/services/socket.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +34,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;fix/post&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;test-conversation&quot;,
     &quot;last_opened_file_path&quot;: &quot;E:/2024/chodocu/Old_store/be/src/repositories&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -161,7 +147,9 @@
       <workItem from="1732722512035" duration="172000" />
       <workItem from="1732722703168" duration="4285000" />
       <workItem from="1732761076039" duration="9137000" />
-      <workItem from="1732773281806" duration="11000" />
+      <workItem from="1732773281806" duration="1462000" />
+      <workItem from="1732813200610" duration="1762000" />
+      <workItem from="1732849889307" duration="1024000" />
     </task>
     <servers />
   </component>

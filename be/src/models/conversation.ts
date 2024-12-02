@@ -1,6 +1,6 @@
 import mongoose, {Document, model, Schema} from 'mongoose';
 
-interface IConversation extends Document {
+export interface IConversation extends Document {
     participants: mongoose.Types.ObjectId[];
     latest_mentioned_post_id: mongoose.Types.ObjectId | null | string;
     is_deleted: boolean
@@ -9,7 +9,7 @@ interface IConversation extends Document {
 const ConversationSchema = new Schema(
     {
         participants: [{type: Schema.Types.ObjectId, ref: 'User'}],
-        latest_mentioned_post_id: {type: Schema.Types.ObjectId, default: null},
+        latest_mentioned_post_id: {type: Schema.Types.ObjectId, default: null, ref: 'Post'},
         is_deleted: {
             type: Boolean,
             default: false

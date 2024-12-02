@@ -8,14 +8,19 @@ const {ObjectId} = Types
 class ConversationRepo {
     async createOrUpdate(userId: string, participantId: string, latestPostId: string | null): Promise<any> {
         try {
-            console.log(userId, participantId)
-            const re=await Conversation.find(
+            const conversation = await Conversation.findOne(
                 {
-                    participants: {$size: 2, $all: [userId, participantId]},
+                    participants: { $size: 2, $all: [participantId, userId] },
                     is_deleted: false
                 }
             )
-            console.log('re',re)
+            if (!conversation) return Conversation.create({
+                participants: [participantId, userId],
+                latest_mentioned_post_id: latestPostId
+            })
+
+            conversation.latest_mentioned_post_id = latestPostId;
+            return conversation.save();
         }
         catch (err) {
             throw err;

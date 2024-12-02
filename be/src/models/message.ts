@@ -14,7 +14,7 @@ const MessageSchema = new Schema(
     sender_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
     content_type: {type: String, required: true},
-    seen_at: {type: Date, default: Date.now},
+    seen_at: {type: Date, default: null},
     is_deleted: {
         type: Boolean,
         default: false

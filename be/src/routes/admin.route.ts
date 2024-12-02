@@ -7,6 +7,7 @@ import isAdmin from "../middlewares/isAdmin";
 import isSuperAdmin from "../middlewares/isSuperAdmin";
 import categoryController from "../controllers/category.controller";
 import attributeController from "../controllers/attribute.controller";
+import postController from "../controllers/post.controller";
 const adminRouter = express.Router();
 
 adminRouter.get('/get-profile', [authentication, isNotDeleted], adminController.getProfile);
@@ -43,6 +44,11 @@ adminRouter.patch(
     '/categories/:id',
     [authentication, isNotDeleted, isAdmin],
     categoryController.hideOrShowCategory
+)
+adminRouter.get(
+    '/posts',
+    [authentication, isNotDeleted, isAdmin],
+    postController.getAllPostsForAdmin
 )
 
 export default adminRouter;

@@ -67,6 +67,15 @@ class PostController {
         }
     }
 
+    async getAllPostsForAdmin(req: Request, res: Response): Promise<any> {
+        try {
+            const result = await postRepository.getAllPostsForAdmin(req.query)
+            return res.status(200).send(result)
+        } catch (err) {
+            return res.status(500).send({message: 'Lỗi máy chủ'})
+        }
+    }
+
     async getPostById(req: CustomRequest, res: Response): Promise<any> {
         try {
             const postId: string = req.params.id

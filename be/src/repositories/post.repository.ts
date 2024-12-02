@@ -14,6 +14,99 @@ interface IFilterQuery {
 }
 
 class PostRepo {
+    async getAllPostsForAdmin(
+        {
+            search_key,
+            status,
+            page = 1,
+            column = 'createdAt',
+            sort_order = -1
+        }: any) {
+        try {
+            const searchFilter = search_key ? {
+                $or: [
+                    {title: {$regex: search_key, $options: 'i'}},
+                    {'poster.firstname': {$regex: search_key, $options: 'i'}},
+                    {'poster.lastname': {$regex: search_key, $options: 'i'}},
+                    {'poster.phone': {$regex: search_key, $options: 'i'}},
+                    {'poster.email': {$regex: search_key, $options: 'i'}}
+                ]
+            } : {}
+            let sortOrder = DEFAULT_GET_QUERY.SORT_ORDER
+            try {
+                if (sort_order !== undefined) {
+                    const order = Number(sort_order)
+                    if (isSafeInteger(order) && order >= -1 && order <= 1) {
+                        sortOrder = order === 0 ? DEFAULT_GET_QUERY.SORT_ORDER : order
+                    }
+                }
+            } catch (e) {
+                sortOrder = DEFAULT_GET_QUERY.SORT_ORDER
+            }
+
+            const commonQuery = [
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: 'product_id',
+                        foreignField: '_id',
+                        as: 'product'
+                    }
+                },
+                {$unwind: '$product'},
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'poster_id',
+                        foreignField: '_id',
+                        as: 'poster'
+                    }
+                },
+                {$unwind: '$poster'},
+                {
+                    $lookup: {
+                        from: 'categories',
+                        localField: 'product.category_id',
+                        foreignField: '_id',
+                        as: 'category'
+                    }
+                },
+                {$unwind: '$category'}
+            ]
+
+            const [total, posts] = await Promise.all([
+                Post.aggregate([...commonQuery, {$count: 'total'}]),
+                Post.aggregate([
+                    ...commonQuery,
+                    {
+                        $match: {
+                            ...searchFilter,
+                            ...(status ? {status}: {})
+                        }
+                    },
+                    {$skip: (page - 1) * DEFAULT_GET_QUERY.PAGE_SIZE},
+                    {$limit: DEFAULT_GET_QUERY.PAGE_SIZE},
+                    {$sort: {[column]: sortOrder as any}},
+                    {
+                        $project: {
+                            __v: 0,
+                            'product.__v': 0,
+                            'poster.password': 0,
+                            'poster.__v': 0
+                        }
+                    }
+                ])
+            ])
+
+            return {
+                total: total?.length > 0 ? total[0].total : 0,
+                posts
+            }
+        } catch (err) {
+            throw err
+        }
+    }
+
     async getAllApprovedPosts(
         {
             search_key,
