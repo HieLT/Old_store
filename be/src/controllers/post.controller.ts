@@ -1,4 +1,4 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import ProductRepo from '../repositories/product.repository';
 import productRepository from '../repositories/product.repository';
 import AttributeRepo from '../repositories/attribute.repository';
@@ -6,17 +6,17 @@ import AttributeProductRepo from '../repositories/attribute_product.repository';
 import PostRepo from '../repositories/post.repository';
 import postRepository from '../repositories/post.repository';
 import CloudinaryService from '../services/cloudinary';
-import {IAttribute} from '../models/attribute';
-import {IAttributeProduct} from '../models/attribute_product';
-import mongoose, {isValidObjectId, Types} from 'mongoose';
-import {getDetailErrorMessage} from "../utils/helpers";
-import {updatePostSchema} from "../requests/post.request";
-import {POST_STATUS} from "../utils/enum";
-import {DEFAULT_GET_QUERY} from "../utils/constants";
+import { IAttribute } from '../models/attribute';
+import { IAttributeProduct } from '../models/attribute_product';
+import mongoose, { isValidObjectId, Types } from 'mongoose';
+import { getDetailErrorMessage } from "../utils/helpers";
+import { updatePostSchema } from "../requests/post.request";
+import { POST_STATUS, NOTIFICATION_TITLE, NOTIFICATION_TYPE } from "../utils/enum";
+import { DEFAULT_GET_QUERY } from "../utils/constants";
 import User from "../models/user";
-import { POST_STATUS } from '../utils/enum';
+import NotificationRepo from '../repositories/notification.repository';
 
-const {ObjectId} = Types
+const { ObjectId } = Types
 
 interface CustomRequest extends Request {
     account?: any;
@@ -64,7 +64,7 @@ class PostController {
             const result = await postRepository.getAllApprovedPosts(req.query)
             return res.status(200).send(result)
         } catch (err) {
-            return res.status(500).send({message: 'Lỗi máy chủ'})
+            return res.status(500).send({ message: 'Lỗi máy chủ' })
         }
     }
 
@@ -73,7 +73,7 @@ class PostController {
             const result = await postRepository.getAllPostsForAdmin(req.query)
             return res.status(200).send(result)
         } catch (err) {
-            return res.status(500).send({message: 'Lỗi máy chủ'})
+            return res.status(500).send({ message: 'Lỗi máy chủ' })
         }
     }
 
@@ -82,11 +82,11 @@ class PostController {
             const postId: string = req.params.id
             const accountId = req.account?._id
             if (!postId || !isValidObjectId(postId)) {
-                return res.status(400).send({message: 'ID bài đăng không hợp lệ'})
+                return res.status(400).send({ message: 'ID bài đăng không hợp lệ' })
             }
             let post = await postRepository.getPost(postId)
             if (!post) {
-                return res.status(404).send({message: 'Bài đăng không tồn tại hoặc đã bị xóa'})
+                return res.status(404).send({ message: 'Bài đăng không tồn tại hoặc đã bị xóa' })
             }
             const isEditable = String(accountId) === String(post?.poster_id)
             const [postProduct, poster] = await Promise.all([
@@ -112,7 +112,7 @@ class PostController {
                                 $filter: {
                                     input: "$reviewers",
                                     as: "reviewer",
-                                    cond: {$eq: ["$$reviewer.reviewee_id", new ObjectId(post?.poster_id)]}
+                                    cond: { $eq: ["$$reviewer.reviewee_id", new ObjectId(post?.poster_id)] }
                                 }
                             }
                         }
@@ -120,7 +120,7 @@ class PostController {
                     {
                         $addFields: {
                             averageStars: {
-                                $ifNull: [{$avg: "$reviewers.stars"}, 0]
+                                $ifNull: [{ $avg: "$reviewers.stars" }, 0]
                             }
                         }
                     },
@@ -145,7 +145,7 @@ class PostController {
                 editable: isEditable
             })
         } catch (err) {
-            return res.status(500).send({message: 'Lỗi máy chủ'})
+            return res.status(500).send({ message: 'Lỗi máy chủ' })
         }
     }
 
@@ -155,8 +155,8 @@ class PostController {
 
         const user = req.account;
         const dataInput = req.body.post;
-        const {title, location, is_draft} = dataInput;
-        const {product_attributes, condition, images, category_id, description, price} = dataInput.product || {};
+        const { title, location, is_draft } = dataInput;
+        const { product_attributes, condition, images, category_id, description, price } = dataInput.product || {};
 
         if (!dataInput || !dataInput.product) {
             res.status(400).send('Lỗi yêu cầu')
@@ -285,10 +285,10 @@ class PostController {
 
         const user = req.account;
         const requestPost = req.body.post;
-        const {product_attributes, condition, images, category_id, description, price} = requestPost.product || {};
+        const { product_attributes, condition, images, category_id, description, price } = requestPost.product || {};
 
-        const {error} = updatePostSchema.body.validate(
-            requestPost, {abortEarly: false}
+        const { error } = updatePostSchema.body.validate(
+            requestPost, { abortEarly: false }
         )
         if (error) {
             return res.status(400).send({
@@ -328,7 +328,7 @@ class PostController {
             } else if (requestStatus === POST_STATUS.DRAFT && currentStatus === POST_STATUS.DRAFT) {
                 status = POST_STATUS.DRAFT
             } else {
-                return res.status(400).send({message: 'Bạn không có quyền thay đổi trạng thái bài đăng'})
+                return res.status(400).send({ message: 'Bạn không có quyền thay đổi trạng thái bài đăng' })
             }
 
             for (const item of product_attributes) {
@@ -363,19 +363,19 @@ class PostController {
                 throw new Error('Không tìm thấy sản phẩm thuộc bài đăng')
             }
             await Promise.all(product_attributes.map((item: {
-                    _id: string,
-                    attribute_id: string,
-                    product_id: string,
-                    value: any
-                }) =>
-                    AttributeProductRepo.updateAttributeProduct(
-                        requestStatus !== POST_STATUS.DRAFT,
-                        {
-                            id: item?._id,
-                            attributeId: item?.attribute_id,
-                            productId: item?.product_id,
-                            value: item?.value
-                        }, session)
+                _id: string,
+                attribute_id: string,
+                product_id: string,
+                value: any
+            }) =>
+                AttributeProductRepo.updateAttributeProduct(
+                    requestStatus !== POST_STATUS.DRAFT,
+                    {
+                        id: item?._id,
+                        attributeId: item?.attribute_id,
+                        productId: item?.product_id,
+                        value: item?.value
+                    }, session)
             ));
 
             await PostRepo.updatePost(postId, {
@@ -400,50 +400,62 @@ class PostController {
     }
 
     async approvePost(req: Request, res: Response): Promise<void> {
-        const {post_id} = req.params;
-        try{
+        const { post_id } = req.params;
+        try {
             const post = await PostRepo.getPost(post_id);
-            if(!post){
+            if (!post) {
                 res.status(404).send('Bài post không tồn tại');
                 return;
             }
-            if(post.status !== POST_STATUS.PENDING){
+            if (post.status !== POST_STATUS.PENDING) {
                 res.status(400).send('Bài post này không thể duyệt');
                 return;
             }
-            try{
-                await PostRepo.updatePost(post._id, {status: POST_STATUS.APPROVED })   ;    
-            }catch(err: any){
+            try {
+                await PostRepo.updatePost(post._id, { status: POST_STATUS.APPROVED });
+                NotificationRepo.createNotification({
+                    post_id: post._id,
+                    title: NOTIFICATION_TITLE.APPROVED_POST,
+                    type: NOTIFICATION_TYPE.POST,
+                    receiver_id: post.poster_id
+                })
+            } catch (err: any) {
                 res.status(400).send(err.message);
             }
             res.status(200).send('Duyệt thành công');
-        } catch{
+        } catch {
             res.status(500).send('Lỗi server');
         }
     }
 
     async rejectPost(req: Request, res: Response): Promise<void> {
-        const {post_id} = req.params;
-        try{
+        const { post_id } = req.params;
+        try {
             const post = await PostRepo.getPost(post_id);
-            if(!post){
+            if (!post) {
                 res.status(404).send('Bài post không tồn tại');
                 return;
             }
-            if(post.status !== POST_STATUS.PENDING &&
-                post.status !== POST_STATUS.APPROVED && 
+            if (post.status !== POST_STATUS.PENDING &&
+                post.status !== POST_STATUS.APPROVED &&
                 post.status !== POST_STATUS.HIDDEN
-            ){
+            ) {
                 res.status(400).send('Bài post này không thể từ chối');
                 return;
             }
-            try{
-                await PostRepo.updatePost(post._id, {status: POST_STATUS.REJECTED });    
-            }catch(err: any){
+            try {
+                await PostRepo.updatePost(post._id, { status: POST_STATUS.REJECTED });
+                NotificationRepo.createNotification({
+                    post_id: post._id,
+                    title: NOTIFICATION_TITLE.REJECTED_POST,
+                    type: NOTIFICATION_TYPE.POST,
+                    receiver_id: post.poster_id
+                })
+            } catch (err: any) {
                 res.status(400).send(err.message);
             }
             res.status(200).send('Duyệt thành công');
-        } catch{
+        } catch {
             res.status(500).send('Lỗi server');
         }
     }
@@ -451,20 +463,20 @@ class PostController {
     async changeVisibility(req: CustomRequest, res: Response): Promise<any> {
         const user = req.account;
         const isVisibility: any = req.body.is_visibility;
-        const {id} = req.params;
+        const { id } = req.params;
         try {
             const post = await PostRepo.getPost(id);
-            if (isVisibility === undefined || typeof isVisibility !== 'boolean') return res.status(400).send({message: 'Lỗi yêu cầu'})
+            if (isVisibility === undefined || typeof isVisibility !== 'boolean') return res.status(400).send({ message: 'Lỗi yêu cầu' })
             if (!post) return res.status(404).send('Không có bài đăng');
 
             const isInvalidChange: boolean = (!isVisibility && post.status !== POST_STATUS.APPROVED) || (isVisibility && post.status !== POST_STATUS.HIDDEN)
-            if (String(post.poster_id) !== String(user._id) || isInvalidChange) return res.status(400).send({message: 'Không có quyền thay đổi'});
+            if (String(post.poster_id) !== String(user._id) || isInvalidChange) return res.status(400).send({ message: 'Không có quyền thay đổi' });
 
             const result = await PostRepo.hideOrShowPost(id, isVisibility);
             if (!result) {
-                return res.status(500).send({message: 'Thay đổi thất bại'})
+                return res.status(500).send({ message: 'Thay đổi thất bại' })
             }
-            return res.status(200).send({message: 'Thay đổi trạng thái bài viết thành công'})
+            return res.status(200).send({ message: 'Thay đổi trạng thái bài viết thành công' })
         } catch (err: any) {
             res.status(500).send(err.message)
         }

@@ -65,3 +65,10 @@ export const NOTIFICATION_TYPE =  {
     ORDER : 'order',
     POST : 'post'
 }
+
+export const NOTIFICATION_TITLE = {
+    APPROVED_POST : 'Bài đăng của bạn đã được chấp thuận',
+    REJECTED_POST: 'Bài đăng của bạn đã bị từ chối',
+    PAYMENT_COD: 'Bạn có thông báo mới cho đơn mới',
+    PAYMENT_CREDIT: 'Bạn có thông báo mới cho yêu cầu thanh toán đơn mới'
+}

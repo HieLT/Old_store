@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import PostRepo from "../repositories/post.repository";
 import OrderRepo from "../repositories/order.repository";
 import UserRepo from "../repositories/user.repository";
-import { ORDER_STATUS, PAYMENT_METHOD } from "../utils/enum";
+import { NOTIFICATION_TITLE, NOTIFICATION_TYPE, ORDER_STATUS, PAYMENT_METHOD } from "../utils/enum";
+import notificationRepo from "../repositories/notification.repository";
 
 interface CustomRequest extends Request {
     account?: any;
@@ -30,7 +31,7 @@ class OrderController {
 
     async getMySellingOrders(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
-        const { status, search_key , page, limit } = req.query;
+        const { status, search_key, page, limit } = req.query;
 
         try {
             try {
@@ -86,9 +87,19 @@ class OrderController {
                 total
             } = req.body.order;
 
+            let {
+                payment_query_object
+            } = req.body.notification;
+
+            if (payment_method === PAYMENT_METHOD.CREDIT && !payment_query_object) {
+                res.status(400).send(`Lựa chọn thanh toán bằng ${PAYMENT_METHOD.CREDIT} cần payment_query_object`);
+                return;
+            }
+
             const post = await PostRepo.getPost(post_id);
             const customer = await UserRepo.getUserById(customer_id);
 
+            //order validation
             if (customer.is_deleted) {
                 res.status(403).send('Bạn không thể tạo đơn hàng bởi người dùng đã bị xóa');
                 return;
@@ -108,13 +119,16 @@ class OrderController {
                 return;
             }
 
-            let status;
-
+            let title, status;
             if (payment_method === PAYMENT_METHOD.COD) {
+                title = NOTIFICATION_TITLE.PAYMENT_COD;
                 status = ORDER_STATUS.PROCESSING;
+                payment_query_object = null;
             } else if (payment_method === PAYMENT_METHOD.CREDIT) {
+                title = NOTIFICATION_TITLE.PAYMENT_CREDIT;
                 status = ORDER_STATUS.WAITING_FOR_PAYMENT;
-            }
+                payment_query_object = null;
+            };
 
             try {
                 await OrderRepo.newOrder(
@@ -127,8 +141,14 @@ class OrderController {
                         customer_location,
                         total: total ? total : null,
                         status: status
-                    }
-                )
+                    });
+
+                notificationRepo.createNotification({
+                    title,
+                    type: NOTIFICATION_TYPE.ORDER,
+                    payment_query_object,
+                    receiver_id: customer_id
+                })
             } catch (err) {
                 res.status(400).send(err)
             }
