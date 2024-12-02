@@ -6,7 +6,7 @@ export interface IPost {
     title: string;
     poster_id: Schema.Types.ObjectId;
     product_id: Schema.Types.ObjectId | null;
-    status: 'pending' | 'approved' | 'rejected' | 'hidden' | 'draft' | 'done' | 'expired';
+    status: string;
     location: {
         city: string | null,
         district: string | null

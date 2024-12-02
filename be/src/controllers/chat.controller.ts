@@ -2,9 +2,7 @@ import {Request, Response} from "express";
 import User, {IUser} from '../models/user';
 import {isValidObjectId, Schema, Types} from "mongoose";
 import PostRepository from "../repositories/post.repository";
-import Post from "../models/post";
 import UserRepository from "../repositories/user.repository";
-import Conversation from "../models/conversation";
 import conversationRepository from "../repositories/conversation.repository";
 
 const {ObjectId} = Types
@@ -18,11 +16,14 @@ class ChatController {
         try {
             const user = req.account as IUser;
             const {participantId, latestMentionedPostId} = req.body
-
+            
             if (!isValidObjectId(participantId) || (latestMentionedPostId && !isValidObjectId(latestMentionedPostId))) {
                 return res.status(400).send({message: 'ID người tham gia hoặc bài viết không hợp lệ'})
             }
             const participant = await UserRepository.getUserById(participantId)
+            if ( String(participant._id) === String(user._id)){
+                return res.status(400).send({message: 'Id người tham gia không được trùng'})
+            } 
             if (!participant) {
                 return res.status(404).send({message: 'Người tham gia không tồn tại'})
             }
@@ -31,10 +32,13 @@ class ChatController {
                 if (!post) {
                     return res.status(404).send({message: 'Bài đăng không tồn tại'})
                 }
+                if (String(post.poster_id) !== participantId) {
+                    return res.status(400).send({message: 'Bài đăng không hợp lệ'})
+                }
             }
 
             await conversationRepository.createOrUpdate(String(user?._id), participantId, latestMentionedPostId)
-            return res.status(201);
+            return res.status(201).send('');
         } catch (err) {
             console.log(err)
             return res.status(500).send({message: 'Lỗi máy chủ'});

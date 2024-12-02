@@ -1,3 +1,5 @@
+import { CANCELLED } from "dns"
+
 export const CATEGORY_ATTRIBUTE_TYPE = {
     TEXT: 'text',
     DROPDOWN: 'dropdown',
@@ -43,4 +45,23 @@ export const MESSAGE_CONTENT_TYPE = {
     TEXT: 'text',
     LINK: 'link',
     FILE: 'file'
+}
+
+export const ORDER_STATUS= {
+    WAITING_FOR_PAYMENT: 'waiting_for_payment',
+    PROCESSING: 'processing',
+    DERLIVERING: 'delivering',
+    DELIVERED: 'delivered',
+    RECEIVED: 'received',
+    CANCELLED: 'cancelled'
+}
+
+export const PAYMENT_METHOD = {
+    COD: 'cod',
+    CREDIT : 'credit'
+}
+
+export const NOTIFICATION_TYPE =  {
+    ORDER : 'order',
+    POST : 'post'
 }

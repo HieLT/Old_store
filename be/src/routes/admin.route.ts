@@ -51,4 +51,16 @@ adminRouter.get(
     postController.getAllPostsForAdmin
 )
 
+//post
+adminRouter.patch(
+    '/manage-post/:post_id/aprrove',
+    [authentication, isNotDeleted, isAdmin],
+    postController.approvePost
+)
+adminRouter.patch(
+    '/manage-post/:post_id/reject',
+    [authentication, isNotDeleted, isAdmin],
+    postController.rejectPost
+)
+
 export default adminRouter;

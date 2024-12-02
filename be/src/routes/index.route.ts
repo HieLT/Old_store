@@ -8,6 +8,7 @@ import babyRouter from './baby.route';
 import postRouter from './post.route';
 import wishlistRouter from "./wishlist.route";
 import chatRouter from "./chat.route";
+import orderRouter from './order.route';
 
 
 const route = (app: any) => {
@@ -21,6 +22,7 @@ const route = (app: any) => {
     app.use('/post', postRouter);
     app.use('/wishlist', wishlistRouter);
     app.use('/chat', chatRouter);
+    app.use('/order', orderRouter);
 };
 
 export default route;

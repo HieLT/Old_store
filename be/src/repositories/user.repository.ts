@@ -1,8 +1,8 @@
 import User, { IUser } from "../models/user";
 import bcrypt from "bcrypt";
-import {Types} from "mongoose";
+import { Types } from "mongoose";
 
-const {ObjectId} = Types
+const { ObjectId } = Types
 
 class UserRepo {
     async getUserById(id: string): Promise<any> {
@@ -97,7 +97,7 @@ class UserRepo {
         try {
             const result = await User.findByIdAndUpdate({ _id: id }, { is_deleted: false });
 
-            return result ? true : false;
+            !!result;
 
         } catch (err) {
             throw err;
