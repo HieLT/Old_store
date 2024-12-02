@@ -4,9 +4,6 @@ import UserRepo from "../repositories/user.repository";
 import validatePassword from '../utils/validatePassword';
 import { IUser } from '../models/user';
 
-interface MulterRequest extends Request {
-    file: Express.Multer.File;
-}
 interface CustomRequest extends Request {
     account?: any;
 }
@@ -15,8 +12,9 @@ class UserController {
     async getProfile(req: CustomRequest, res: Response): Promise<void> {
         try {
             const user = req.account as IUser;
-            const { password: _, ...userDetails } = user;
-            res.status(200).send(user);
+            // @ts-ignore
+            const { password: _, ...userDetails } = user?.toObject();
+            res.status(200).send(userDetails);
         } catch {
             res.status(500);
         }
@@ -43,7 +41,7 @@ class UserController {
             }
 
             if ('is_deleted' in update) {
-                res.status(403).send('Không có quyền truy cập');
+                res.status(403).send('Không có quyền cập nhật');
                 return;
             }
 
@@ -61,7 +59,6 @@ class UserController {
         try {
             const user = req.account as IUser;
             const file = req.file;
-
             if (!file) {
                 res.status(400).send('Không có ảnh upload');
                 return;

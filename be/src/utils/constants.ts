@@ -8,10 +8,12 @@ export const validatorMessages = {
 
     'any.only': '{{#label}} phải là 1 trong các giá trị {#valids}',
     'any.required': '{{#label}} không được bỏ trống',
+    "any.unknown": "Trường {#label} không được xác định",
 
     'array.base': "{{#label}} phải là 1 mảng",
     'array.includes': "{{#label}} không chứa đúng các phần tử yêu cầu",
-    'array.min': "{{#label}} phải chứa ít nhất {#limit} giá trị"
+    'array.min': "{{#label}} phải chứa ít nhất {#limit} giá trị",
+    'object.unknown': "Trường {{#label}} không được xác định"
 }
 
 export const DEFAULT_GET_QUERY = {

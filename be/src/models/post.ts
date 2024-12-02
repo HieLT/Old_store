@@ -1,35 +1,49 @@
-import { model, Schema } from "mongoose";
+import {model, Schema} from "mongoose";
+import {POST_STATUS} from "../utils/enum";
 
 export interface IPost {
     _id: Schema.Types.ObjectId;
+    title: string;
     poster_id: Schema.Types.ObjectId;
     product_id: Schema.Types.ObjectId | null;
-    status: 'Pending'|'Approved'|'Rejected'|'Hidden'|'Draft'|'Done'|'Expired';
-    draft_product: JSON;
-    location: string
-    is_deleted: boolean
+    status: 'pending' | 'approved' | 'rejected' | 'hidden' | 'draft' | 'done' | 'expired';
+    location: {
+        city: string | null,
+        district: string | null
+    };
+    is_deleted: boolean;
 }
 
 const Post = new Schema<IPost>({
+    title: {
+        type: String,
+        required: [true, 'Thiếu title']
+    },
     poster_id: {
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
     product_id: {
         type: Schema.Types.ObjectId,
-        ref: 'Product',
-        default: null
+        ref: 'Product'
     },
     status: {
         type: String,
-        enum: ['Pending','Approved','Rejected','Hidden','Draft','Done','Expired']
-    },
-    draft_product: {
-        type: JSON
+        enum: Object.values(POST_STATUS),
+        default: 'pending'
     },
     location: {
-        type: String,
-        required: true
+        type: {
+            city: {
+                type: String || null,
+                default: null
+            },
+            district: {
+                type: String || null,
+                default: null
+            },
+        },
+        required: [true, "Thiếu location"]
     },
     is_deleted: {
         type: Boolean,

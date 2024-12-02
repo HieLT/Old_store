@@ -7,6 +7,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import passport from "passport";
 import _ from "lodash";
+import * as http from "http";
+import {Server} from "socket.io";
+import connectSocket from "./src/services/socket";
 // import { createClient } from 'redis';
 
 // const client = createClient();
@@ -17,13 +20,19 @@ import _ from "lodash";
 
 config();
 
-
-
 const hostname = 'localhost';
 const port = 8080;
 const fe_access = process.env.fe_access;
 
 const app = express()
+const server = http.createServer(app)
+
+const io = new Server(server, {
+    cors: {
+        origin: [`${fe_access}`, `http://localhost:8080` ],
+        credentials: true
+    },
+});
 
 app.use(cookieParser());
 app.use(express.json());
@@ -32,12 +41,14 @@ connect();
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 app.use(cors({
-    origin: [`${fe_access}`],
+    origin: [`${fe_access}`, `http://localhost:8080` ],
     methods: "GET,POST,PUT,PATCH,DELETE",
     credentials: true,
 }));
 
 route(app)
-app.listen(port, hostname, () => {
+connectSocket(io)
+
+server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
 });

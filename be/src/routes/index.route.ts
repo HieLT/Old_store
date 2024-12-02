@@ -5,7 +5,9 @@ import userRouter from './user.route';
 import locationRouter from './location.route';
 import publicRouter from "./public.route";
 import babyRouter from './baby.route';
-
+import postRouter from './post.route';
+import wishlistRouter from "./wishlist.route";
+import chatRouter from "./chat.route";
 
 
 const route = (app: any) => {
@@ -13,9 +15,12 @@ const route = (app: any) => {
     app.use('/auth', authRouter);
     app.use('/public', publicRouter);
     app.use('/verify-email', emailVerificationRouter);
-    app.use('/user' , userRouter);
+    app.use('/user', userRouter);
     app.use('/location', locationRouter);
-    app.use('/baby',babyRouter);
+    app.use('/baby', babyRouter);
+    app.use('/post', postRouter);
+    app.use('/wishlist', wishlistRouter);
+    app.use('/chat', chatRouter);
 };
 
 export default route;

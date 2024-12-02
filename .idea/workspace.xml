@@ -5,13 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f593b65f-640f-47d6-b387-6d596d3ca833" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/be/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/server.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/server.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/controllers/category.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/controllers/category.controller.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/repositories/category.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/category.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/routes/admin.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/routes/admin.route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/be/src/routes/public.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/routes/public.route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/repositories/conversation.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/repositories/conversation.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/be/src/services/socket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/be/src/services/socket.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,7 +34,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;category-routes&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;test-conversation&quot;,
     &quot;last_opened_file_path&quot;: &quot;E:/2024/chodocu/Old_store/be/src/repositories&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -53,8 +49,10 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="E:\2024\chodocu\Old_store\be\src\repositories" />
+      <recent name="E:\2024\chodocu\Old_store\be\src\controllers" />
       <recent name="E:\2024\chodocu\Old_store\be\src\routes" />
       <recent name="E:\2024\chodocu\Old_store\be\src\models" />
+      <recent name="E:\2024\chodocu\Old_store" />
     </key>
   </component>
   <component name="RunManager">
@@ -109,6 +107,49 @@
       <workItem from="1728724887895" duration="171000" />
       <workItem from="1728726469925" duration="3935000" />
       <workItem from="1728749496649" duration="4837000" />
+      <workItem from="1730021213988" duration="86000" />
+      <workItem from="1730023491125" duration="4422000" />
+      <workItem from="1730045493160" duration="2381000" />
+      <workItem from="1730103212219" duration="28000" />
+      <workItem from="1730105621929" duration="1079000" />
+      <workItem from="1730109320391" duration="1670000" />
+      <workItem from="1730123603312" duration="5000" />
+      <workItem from="1730124608265" duration="2054000" />
+      <workItem from="1730308669506" duration="22000" />
+      <workItem from="1730451516942" duration="13000" />
+      <workItem from="1730627996509" duration="288000" />
+      <workItem from="1730630020069" duration="857000" />
+      <workItem from="1730688269994" duration="7454000" />
+      <workItem from="1730880221455" duration="713000" />
+      <workItem from="1731063813465" duration="5036000" />
+      <workItem from="1731222166556" duration="10834000" />
+      <workItem from="1731287519493" duration="12906000" />
+      <workItem from="1731384213530" duration="2576000" />
+      <workItem from="1731425221739" duration="391000" />
+      <workItem from="1731479225164" duration="4000" />
+      <workItem from="1731835971456" duration="7062000" />
+      <workItem from="1731915057471" duration="9039000" />
+      <workItem from="1731997306254" duration="5687000" />
+      <workItem from="1732089296974" duration="8215000" />
+      <workItem from="1732164919749" duration="7276000" />
+      <workItem from="1732261355968" duration="8797000" />
+      <workItem from="1732416912360" duration="719000" />
+      <workItem from="1732431307456" duration="5919000" />
+      <workItem from="1732438853164" duration="1155000" />
+      <workItem from="1732510672975" duration="9729000" />
+      <workItem from="1732587193666" duration="855000" />
+      <workItem from="1732588221773" duration="3823000" />
+      <workItem from="1732607394168" duration="3738000" />
+      <workItem from="1732693785523" duration="3442000" />
+      <workItem from="1732720718295" duration="838000" />
+      <workItem from="1732721861301" duration="439000" />
+      <workItem from="1732722325793" duration="63000" />
+      <workItem from="1732722512035" duration="172000" />
+      <workItem from="1732722703168" duration="4285000" />
+      <workItem from="1732761076039" duration="9137000" />
+      <workItem from="1732773281806" duration="1462000" />
+      <workItem from="1732813200610" duration="1762000" />
+      <workItem from="1732849889307" duration="1024000" />
     </task>
     <servers />
   </component>
@@ -116,11 +157,38 @@
     <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="HEAD" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>

@@ -23,12 +23,20 @@ const createToken = (payload: object, expiresIn: string, secretKey: string): str
     return jwt.sign(payload, secretKey, options);
 };
 
-const handleUserNotFoundOrDeleted = (res: Response, account: any): void => {
-    if (!account) {
-        res.status(401).send('Email hoặc mật khẩu không chính xác');
-    } else if (account.is_delete) {
+const handleRefuseLogin = (res: Response, account: any): void => {
+    if (!account ){
+        res.status(400).send('Tài khoản không tồn tại');
+    } 
+    else if (account.is_deleted) { 
         res.status(403).send('Người dùng đã bị xóa, liên hệ quản trị viên để mở khóa');
+    }  
+    else if (account.is_google_account) {
+        res.status(422).send('Tài khoản Google không hợp lệ, vui lòng đăng nhập lại');
+    } 
+    else {
+        res.status(401).send('Email hoặc mật khẩu không chính xác');
     }
+    
 };
 
 const sendEmail = async (email: string, subject: string, message: string, res: Response): Promise<void> => {
@@ -43,7 +51,7 @@ const sendEmail = async (email: string, subject: string, message: string, res: R
     }
 };
 
-const  setAuthCookies = (res: Response, token: string, userProfile: any): void =>{
+const setAuthCookies = (res: Response, token: string, userProfile: any): void =>{
     const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'development',
@@ -95,21 +103,22 @@ class AuthController {
                 return;
             }
 
-            if (!password || !validatePassword(password)) {
-                res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
+            if (!password) {
+                res.status(400).send('Mật khẩu không được bỏ trống');
                 return;
             }
 
             //accont_role :  admin or user 
             let account ;
             if ( account_role === ACCOUNT_ROLE.USER) account = await UserRepo.getUserByEmail(email) ;
-            else account = await AdminRepo.getAdminByUsername(username, res);
-
-            if (!account || account.is_delete) {
-                handleUserNotFoundOrDeleted(res, account);
+            else account = await AdminRepo.getAdminByUsername(username);
+            
+            if (!account || account.is_google_account || account.is_delete) {
+                handleRefuseLogin(res, account);
                 return;
             }
-
+           
+            
             const isPasswordCorrect = await bcrypt.compare(password, account.password!);
 
             if (!isPasswordCorrect) {

@@ -7,15 +7,17 @@ import isAdmin from "../middlewares/isAdmin";
 import isSuperAdmin from "../middlewares/isSuperAdmin";
 import categoryController from "../controllers/category.controller";
 import attributeController from "../controllers/attribute.controller";
+import postController from "../controllers/post.controller";
 const adminRouter = express.Router();
 
 adminRouter.get('/get-profile', [authentication, isNotDeleted], adminController.getProfile);
 adminRouter.patch('/update',[authentication, isNotDeleted, isAdmin], adminController.updateAdmin);
 adminRouter.patch('/update-avatar',[authentication, isNotDeleted, Multer.getUpload().array('files')], adminController.updateAvatar);
 adminRouter.post('/create', [authentication, isNotDeleted, isSuperAdmin], adminController.createAdmin);
-adminRouter.put('/delete-admin', [authentication, isNotDeleted, isSuperAdmin], adminController.deleteAdmin);
-adminRouter.put('/delete-user', [authentication, isNotDeleted, isAdmin], adminController.deleteUser);
-adminRouter.post('/get-admins', [authentication,isNotDeleted,isSuperAdmin], adminController.searchAdmin);
+adminRouter.patch('/delete-admin', [authentication, isNotDeleted, isSuperAdmin], adminController.deleteAdmin);
+adminRouter.patch('/delete-user', [authentication, isNotDeleted, isAdmin], adminController.deleteUser);
+adminRouter.get('/get-admins', [authentication,isNotDeleted,isSuperAdmin], adminController.searchAdmin);
+adminRouter.get('/get-users', [authentication,isNotDeleted,isSuperAdmin], adminController.searchUser);
 
 /* Manage category */
 adminRouter.get(
@@ -28,6 +30,11 @@ adminRouter.post(
     [authentication, isNotDeleted, isAdmin],
     categoryController.createCategory
 )
+adminRouter.get(
+    '/category/:id',
+    [authentication, isNotDeleted, isAdmin],
+    categoryController.getCategoryById
+)
 adminRouter.put(
     '/categories/:id',
     [authentication, isNotDeleted, isAdmin],
@@ -38,10 +45,10 @@ adminRouter.patch(
     [authentication, isNotDeleted, isAdmin],
     categoryController.hideOrShowCategory
 )
-adminRouter.put(
-    '/categories/:id/attributes',
+adminRouter.get(
+    '/posts',
     [authentication, isNotDeleted, isAdmin],
-    attributeController.updateAttributes
+    postController.getAllPostsForAdmin
 )
 
 export default adminRouter;

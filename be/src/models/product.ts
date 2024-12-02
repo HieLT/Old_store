@@ -1,39 +1,41 @@
-import {model, Schema, Document} from "mongoose";
+import {Document, model, Schema} from "mongoose";
 
 export interface IProduct extends Document {
     _id: Schema.Types.ObjectId;
-    name: string;
     description?: string;
     images: string[];
     price?: number;
     condition: 'New' | 'Used' | 'Like New';
-    category_id: Schema.Types.ObjectId
+    category_id: Schema.Types.ObjectId;
+    is_deleted: boolean
 }
 
 const ProductSchema = new Schema<IProduct>({
-    name: {
-        type: String,
-        required: true
-    },
     description: {
-        type: String
+        type: String,
+        default: null
     },
     images: {
         type: [String],
-        required: true
+        required: [true, 'images là thuộc tính bắt buộc']
     },
     price: {
-        type: Number
+        type: Number,
+        default: null
     },
     condition: {
         type: String,
-        enum: ["New", "Used", "Like New"],
-        required: true
+        enum: ["new", "like_new", 'used'],
+        required: [true, 'condition là thuộc tính bắt buộc']
     },
     category_id: {
         type: Schema.Types.ObjectId,
-        required: true,
-        ref: 'Category'
+        required: [true, 'category_id là thuộc tính bắt buộc'],
+        ref: 'Category',
+    },
+    is_deleted: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

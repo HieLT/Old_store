@@ -1,54 +1,65 @@
-import Product, { IProduct } from '../models/product';
-import CategoryRepo from '../repositories/category.repository';
+import Product, {IProduct} from '../models/product';
+import {ClientSession, Types} from 'mongoose';
+import attributeProductRepository from "./attribute_product.repository";
 
-const validateProduct = async (product: IProduct): Promise<boolean> => {
-    // Check if category_id is provided
-    if (!product.category_id) {
-        // throw new Error('category_id is required.');
-        return false;
-    }
-
-    const allowedAttributes = await getAllowedAttributesForCategory(String(product.category_id));
-
-    if (product.attributes) {
-        const attributeKeys = Array.from(product.attributes.keys()); 
-        const invalidAttributes = attributeKeys.filter(attr => !allowedAttributes.includes(attr));
-        if (invalidAttributes.length > 0) {
-            // throw new Error(`Invalid attributes: ${invalidAttributes.join(', ')}`);
-            return false;
-        }
-    }
-    
-    return true ;
-};
-
-const getAllowedAttributesForCategory = async (categoryId: string): Promise<string[]> => {
-    try {
-        const category = await CategoryRepo.getCategoryById(categoryId); 
-        return category?.attributes || []; 
-    } catch (err) {
-        throw new Error('Failed to fetch category attributes');
-    }
-};
+const {ObjectId} = Types
 
 class ProductRepo {
-    async createProduct(product: IProduct): Promise<IProduct | false> {
+    async getProduct(productId: string): Promise<any> {
         try {
-            const validate = await validateProduct(product); 
-            if( validate === false) return false; 
-            const result = await Product.create(product);
-            return result || false;
+            let product: any = await Product.findOne({_id: new ObjectId(productId), is_deleted: false}).lean()
+            if (!product) {
+                return null
+            }
+            // @ts-ignore
+            const productAttributes = await attributeProductRepository.getAllAttributesProduct(productId)
+            product = {
+                ...product,
+                product_attributes: productAttributes ? productAttributes?.map((item: any) => ({
+                    _id: item?._id,
+                    attribute_id: item?.attribute_id,
+                    product_id: item?.product_id,
+                    value: item?.value
+                })) : []
+            }
+            return product
+        } catch (err) {
+            throw err
+        }
+    }
+
+    async createProduct(
+        isValidate: boolean,
+        product: any,
+        session: ClientSession,
+    ): Promise<any> {
+        try {
+            // Create the main product first and get its _id
+            const newProduct = new Product(product);
+            const createdProduct = await newProduct.save({session, validateBeforeSave: isValidate});
+
+            return createdProduct ? createdProduct : false;
+
         } catch (err) {
             throw err;
         }
     }
 
-    async updateProduct(productId: string, product: IProduct): Promise<boolean | false> {
+    async updateProduct(
+        isValidate: boolean,
+        product: any,
+        session: ClientSession
+    ): Promise<any> {
         try {
-            const validate = await validateProduct(product); 
-            if( validate === false) return false; 
-            const result = await Product.findByIdAndUpdate(productId, product);
-            return result ? true : false;
+            const update: Partial<IProduct> = {...product};
+            const result = await Product.findOneAndUpdate(
+                {_id: product.id},
+                update,
+                {
+                    session,
+                    // runValidators: !isValidate
+                });
+            return result ? result : false;
         } catch (err) {
             throw err;
         }

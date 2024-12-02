@@ -1,4 +1,4 @@
-import {model,  Schema} from "mongoose";
+ import {model,  Schema} from "mongoose";
 
 export interface IUser {
     _id: Schema.Types.ObjectId;
@@ -14,6 +14,7 @@ export interface IUser {
     following_user_ids: Schema.Types.ObjectId[];
     is_deleted: boolean;
     is_google_account: boolean;
+    wishlist: Schema.Types.ObjectId[]
 };
 
 const User = new Schema<IUser>({
@@ -55,6 +56,7 @@ const User = new Schema<IUser>({
     following_user_ids: [{
         type: Schema.Types.ObjectId,
     }],
+    wishlist: [{type: Schema.Types.ObjectId, ref: 'Post'}],
     is_google_account: {
         type: Boolean , 
         default : false,

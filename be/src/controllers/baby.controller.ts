@@ -16,8 +16,8 @@ class BabyController {
             const babies = await BabyRepo.getBabies(String(user._id));
 
             res.status(200).send(babies);
-        } catch {
-            res.status(500);
+        } catch (err) {
+            res.status(400).send(err);
         }
     }
 
@@ -25,13 +25,13 @@ class BabyController {
         try {
             const user = req.account as IUser;
 
-            const create = req.body as IBaby;
-            create.parent_id = user._id;
+            const baby = req.body.baby as IBaby;
+            baby.parent_id = user._id;
 
             try {
-                await BabyRepo.createBaby(create);
+                const result = await BabyRepo.createBaby(baby);
                 res.status(201).send('Tạo mới thành công');
-            } 
+            }
             catch (err: any) {
                 const message = Object.values(err.errors).map((e: any) => {
                     if (e.name === 'CastError') return 'Ngày sinh không hợp lệ';
@@ -39,34 +39,34 @@ class BabyController {
                 });
                 res.status(400).send(message);
             }
-        } catch {
-            res.status(500);
+        } catch (err) {
+            res.status(400).send(err);
         }
 
     }
     async updateBaby(req: CustomRequest, res: Response): Promise<void> {
         try {
-            const { babyId } = req.body;
-            const update = req.body as IBaby;
+            const { id } = req.params;
+            const baby = req.body.baby
             const user = req.account as IUser;
 
-            const baby = await BabyRepo.getBaby(babyId);
+            const getBaby = await BabyRepo.getBaby(id);
 
-            if (!baby) {
+            if (!getBaby) {
                 res.status(404).send('Không tìm thấy baby');
                 return;
             }
 
-            if (String(baby?.parent_id) !== String(user._id)) {
+            if (String(getBaby?.parent_id) !== String(user._id)) {
                 res.status(403).send('Không có quyền sửa đổi');
                 return;
             }
             else {
                 try {
-                    const result = await BabyRepo.updateBaby(babyId, update);
-                    if(result) res.status(200).send('Cập nhật thành công');
+                    const result = await BabyRepo.updateBaby(id, baby);
+                    if (result) res.status(200).send('Cập nhật thành công');
                     else res.status(400).send('Không tìm thấy babyId');
-                } 
+                }
                 catch (err: any) {
                     const message = Object.values(err.errors).map((e: any) => {
                         if (e.name === 'CastError') return 'Ngày sinh không hợp lệ';
@@ -75,33 +75,33 @@ class BabyController {
                     res.status(400).send(message);
                 }
             }
-        } catch (error) {
-            res.status(500);
+        } catch (err) {
+            res.status(400).send(err);
         }
     }
 
     async deleteBaby(req: CustomRequest, res: Response): Promise<void> {
-        try{
-            const { babyId } = req.body;
+        try {
+            const { id } = req.params;
             const user = req.account as IUser;
 
-            const baby = await BabyRepo.getBaby(babyId);
+            const getBaby = await BabyRepo.getBaby(id);
 
-            if (!baby) {
+            if (!getBaby) {
                 res.status(404).send('Không tìm thấy baby');
                 return;
             }
 
-            if (String(baby?.parent_id) !== String(user._id)) {
+            if (String(getBaby?.parent_id) !== String(user._id)) {
                 res.status(403).send('Không có quyền xóa');
             }
             else {
-                const result = await BabyRepo.deleteBaby(babyId);
+                const result = await BabyRepo.updateBaby(id, { is_deleted: true });
                 if (result) res.status(200).send('Xóa thành công');
                 else res.status(400).send('Không tìm thấy babyId');
             }
-        } catch{
-            res.status(500);
+        } catch (err) {
+            res.status(400).send(err);
         }
     }
 }

@@ -23,7 +23,7 @@ const authentication = async (req: CustomRequest, res: Response, next: NextFunct
         if (account_role === ACCOUNT_ROLE.USER) {
             req.account = await UserRepo.getUserByEmail(payload);
         } else {
-            req.account = await AdminRepo.getAdminByUsername(payload, res);
+            req.account = await AdminRepo.getAdminByUsername(payload);
         }
         req.account.account_role = account_role;
         next();
