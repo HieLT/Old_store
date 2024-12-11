@@ -3,6 +3,7 @@ import User, {IUser} from '../models/user';
 import {isValidObjectId, Schema, Types} from "mongoose";
 import PostRepository from "../repositories/post.repository";
 import Post from "../models/post";
+import { POST_STATUS } from "../utils/enum";
 
 const {ObjectId} = Types
 
@@ -18,7 +19,7 @@ class WishlistController {
     async getMyWishlist(req: CustomRequest, res: Response): Promise<any> {
         try {
             const user = req.account as IUser;
-            const wishlist = Post.aggregate([
+            const wishlist = await Post.aggregate([
                 {$match: {_id: {$in: user.wishlist}}},
                 {
                     $lookup: {
@@ -28,7 +29,21 @@ class WishlistController {
                         as: 'product'
                     }
                 },
-                {$unwind: '$product'}
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'poster_id',
+                        foreignField: '_id',
+                        as: 'poster'
+                    }
+                },
+                {$unwind: '$product'},
+                {$unwind: '$poster'},
+                {$match: {'poster.is_deleted': false}},
+                {$project: {
+                    'poster.is_deleted': 0,
+                    'poster.password': 0
+                }}
             ])
             return res.status(200).send({wishlist});
         } catch {
@@ -47,6 +62,12 @@ class WishlistController {
             const post = await PostRepository.getPost(postId)
             if (!post) {
                 return res.status(404).send({message: 'Bài đăng không tồn tại'})
+            }
+            if (post?.status !== POST_STATUS.APPROVED) {
+                return res.status(400).send({message: 'Bài đăng đang không được hiển thị'})
+            }
+            if (user?.wishlist?.map(item => String(item))?.includes(postId)) {
+                return res.status(400).send({message: 'Bạn đã yêu thích bài đăng trước đó'})
             }
             await User.findOneAndUpdate({_id: user?._id}, {$set: {wishlist: [...user.wishlist, postId]}})
             return res.status(200).send({message: 'Thêm bài đăng vào danh sách yêu thích thành công'})
@@ -71,7 +92,7 @@ class WishlistController {
                 {_id: user?._id},
                 {$set: {wishlist: user.wishlist?.filter(postId => String(postId) !== id)}}
             )
-            return res.status(200).send({message: 'Thêm bài đăng vào danh sách yêu thích thành công'})
+            return res.status(200).send({message: 'Xóa bài đăng vào danh sách yêu thích thành công'})
         } catch {
             return res.status(500).send({message: 'Lỗi máy chủ'});
         }

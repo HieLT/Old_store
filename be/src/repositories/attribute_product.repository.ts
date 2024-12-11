@@ -1,5 +1,6 @@
 import AttributeProduct, {IAttributeProduct} from "../models/attribute_product";
 import {ClientSession, Types} from 'mongoose';
+import postRepository from "./post.repository";
 
 const {ObjectId} = Types
 
@@ -14,7 +15,7 @@ class AttributeProductRepo {
 
     async getAllAttributesProduct(productId: string): Promise<any> {
         try {
-            return AttributeProduct.find({product_id: new ObjectId(productId), is_deleted: false}).lean()
+            return AttributeProduct.find({product_id: new ObjectId(productId), is_deleted: false}).populate('attribute_id').lean()
         } catch (err) {
             throw err
         }
@@ -80,6 +81,24 @@ class AttributeProductRepo {
         try {
             const result = await AttributeProduct.findByIdAndUpdate(id, {is_deleted: true})
             return result ? true : false;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async deleteAttributeProductByUserId(userId: string): Promise<void> {
+        try {
+            const posts = await postRepository.getAllPostsByUserId(userId)
+            await Promise.all([...posts?.map((post) => AttributeProduct.updateMany({product_id: post?.product_id}, {$set: {is_deleted: true}}))])
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async restoreAttributeProductByUserId(userId: string): Promise<void> {
+        try {
+            const posts = await postRepository.getAllPostsByUserId(userId)
+            await Promise.all([...posts?.map((post) => AttributeProduct.updateMany({product_id: post?.product_id}, {$set: {is_deleted: false}}))])
         } catch (err) {
             throw err;
         }

@@ -3,6 +3,7 @@ import AttributeRepo from "../repositories/attribute.repository";
 import {CATEGORY_ATTRIBUTE_TYPE} from "../utils/enum";
 import dayjs from "dayjs";
 import ProductRepository from "../repositories/product.repository";
+import Product from '../models/product'
 
 export interface IAttributeProduct {
     _id: Schema.Types.ObjectId,
@@ -18,30 +19,12 @@ const AttributeProduct = new Schema<IAttributeProduct>({
         required: [true, 'product_id là thuộc tính bắt buộc'],
         ref: 'Product',
         immutable: true,
-        validate: {
-            validator: async function (input: string) {
-                const attribute = await ProductRepository.getProduct(input)
-                if (!attribute) {
-                    return false
-                }
-            },
-            message: 'ID thuộc tính không hợp lệ'
-        }
     },
     attribute_id: {
         type: Schema.Types.ObjectId,
         required: [true, 'attribute_id là thuộc tính bắt buộc'],
         ref: 'Attribute',
         immutable: true,
-        validate: {
-            validator: async function (input: string) {
-                const attribute = await AttributeRepo.getAttribute(input)
-                if (!attribute) {
-                    return false
-                }
-            },
-            message: 'ID thuộc tính không hợp lệ'
-        }
     },
     value: {
         type: Schema.Types.Mixed,
@@ -53,7 +36,7 @@ const AttributeProduct = new Schema<IAttributeProduct>({
                 const attribute_type = attribute.input_type;
                 const attribute_initial_value: string[] | null = attribute.initial_value;
 
-                if (attribute_type === CATEGORY_ATTRIBUTE_TYPE.DROPDOWN || attribute_type === CATEGORY_ATTRIBUTE_TYPE.RADIO) {
+                if (attribute_type === CATEGORY_ATTRIBUTE_TYPE.DROPDOWN) {
                     if (input === null) return true
                     if (typeof input === 'string') {
                         const isValid = attribute_initial_value?.includes(input);

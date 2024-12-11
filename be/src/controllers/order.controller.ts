@@ -57,7 +57,7 @@ class OrderController {
         }
     }
 
-    async getMyByingOrders(req: CustomRequest, res: Response): Promise<void> {
+    async getMyBuyingOrders(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
         const { status, search_key, page, limit } = req.query;
         try {

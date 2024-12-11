@@ -7,7 +7,7 @@ const orderRouter = express.Router();
 orderRouter.post('/create', [authentication, isNotDeleted], OrderController.createOrder);
 orderRouter.get('/',[authentication, isNotDeleted], OrderController.getOrder);
 orderRouter.get('/get-my-selling-orders',[authentication, isNotDeleted], OrderController.getMySellingOrders);
-orderRouter.get('/get-my-bying-orders',[authentication, isNotDeleted], OrderController.getMyByingOrders);
+orderRouter.get('/get-my-buying-orders',[authentication, isNotDeleted], OrderController.getMyBuyingOrders);
 orderRouter.patch('/update-order-status', [authentication, isNotDeleted], OrderController.updateOrderStatus);
 orderRouter.patch('/received-order', [authentication, isNotDeleted], OrderController.receivedOrder);
 

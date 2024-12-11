@@ -1,5 +1,8 @@
+import { Types } from "mongoose";
 import Admin, { IAdmin } from "../models/admin";
 import bcrypt from "bcrypt";
+
+const {ObjectId} = Types
 
 class AdminRepo {
     async getAdminByUsername(username: string): Promise<any> {
@@ -59,7 +62,7 @@ class AdminRepo {
 
             if (admin.password) update.password = bcrypt.hashSync(admin.password!, 10);
 
-            const result = await Admin.findOneAndUpdate({ _id: id }, update);
+            const result = await Admin.findOneAndUpdate({ _id: new ObjectId(id) }, update);
 
             return result ? true : false;
 

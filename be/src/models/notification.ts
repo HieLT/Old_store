@@ -1,8 +1,8 @@
 import {Document, model, Schema} from 'mongoose';
 
 export interface INotification extends Document {
-    post_id : Schema.Types.ObjectId;
-    order_id: Schema.Types.ObjectId;
+    post_id : Schema.Types.ObjectId | null;
+    order_id: Schema.Types.ObjectId | null;
     title: String;
     type: String;
     receiver_id: Schema.Types.ObjectId;
@@ -14,28 +14,28 @@ const NotificationSchema = new Schema(
     {
         title: {
             type: String,
-            default: null
+            required: true,
+            immutable : true
         },
         type: {
             type:String,
-            default: null
+            enum: Object.values(NOTIFICATION_TYPE),
+            immutable: true,
+            required: true
         },
         receiver_id: {
             type: Schema.Types.ObjectId,
-            default: null,
             ref: 'user',
+            immutable: true,
+            required: true
         },
         post_id:{
             type: Schema.Types.ObjectId,
             ref: 'post',
+            immutable: true,
             default: null
         },
-        order_id:{
-            type: Schema.Types.ObjectId,
-            ref: 'order',
-            default: null
-        },
-        seent_at: {
+        seen_at: {
             type: Date,
             default: null
         },
