@@ -278,12 +278,9 @@ class OrderController {
                 return;
             }
 
-            const paymentIntent = await stripe.paymentIntents.cancel(order.pay);
+            await stripe.paymentIntents.cancel(order.stripe_payment_intent_id);
 
-            res.status(200).send({ message: 'Payment canceled successfully', paymentIntent });
-
-
-
+            res.status(200).send('Hủy đơn thành công');
 
         } catch (err: any) {
             res.status(400).send(err.message);

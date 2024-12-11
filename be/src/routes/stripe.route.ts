@@ -1,10 +1,6 @@
 import express from "express";
 import stripeController from "../controllers/stripe.controller";
 import authentication from "../middlewares/authentication";
-import { session } from "passport";
-const Stripe = require('stripe');
-const stripe = Stripe(String(process.env.STRIPE_PRIVATE_KEY));
-
 
 const stripeRouter = express.Router();
 
