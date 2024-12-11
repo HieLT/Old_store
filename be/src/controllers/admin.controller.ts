@@ -5,6 +5,9 @@ import AdminRepo from '../repositories/admin.repository';
 import UserRepo from '../repositories/user.repository';
 import validatePassword from '../utils/validatePassword';
 import { IAdmin } from '../models/admin';
+import postRepository from '../repositories/post.repository';
+import productRepository from '../repositories/product.repository';
+import attribute_productRepository from '../repositories/attribute_product.repository';
 
 interface MulterRequest extends Request {
     files: Express.Multer.File[];
@@ -36,7 +39,7 @@ class AdminController {
 
     async searchUser(req: Request, res: Response): Promise<void> {
         try {
-            const { keywords, page, limit } = req.params;
+            const { keywords, page, limit } = req.query as any;
             const users = await UserRepo.searchUser(keywords, Number(page), Number(limit));
             res.status(200).send(users);
         } catch(err) {
@@ -131,7 +134,7 @@ class AdminController {
 
             const result = await AdminRepo.deleteAdmin(id);
 
-            result ? res.status(200) : res.status(400).send('Xóa tài khoản không thành công');
+            result ? res.status(200).send('Thành công') : res.status(400).send('Xóa tài khoản không thành công');
         } catch(err) {
             res.send(400).send(err);
         }
@@ -141,9 +144,14 @@ class AdminController {
         try {
             const id = req.params.id;
 
-            const result = await UserRepo.deleteUser(id);
+            await Promise.all([
+                UserRepo.deleteUser(id),
+                postRepository.deletePostsByUserId(id),
+                productRepository.deleteProductsByPostId(id),
+                attribute_productRepository.deleteAttributeProductByUserId(id)
+            ])
 
-            result ? res.status(200) : res.status(400).send('Xóa tài khoản không thành công');
+            res.status(200).send('Thành công');
         } catch(err) {
             res.send(400).send(err);
         }
@@ -155,7 +163,7 @@ class AdminController {
 
             const result = await AdminRepo.restoreAdmin(id);
 
-            result ? res.status(200) : res.status(400).send('Khôi phục thất bại');
+            result ? res.status(200).send('Thành công') : res.status(400).send('Khôi phục thất bại');
         } catch(err) {
             res.send(400).send(err);
         }
@@ -165,10 +173,14 @@ class AdminController {
         try {
             const id= req.params.id;
 
-            const result = await UserRepo.restoreUser(id);
+            await Promise.all([
+                UserRepo.restoreUser(id),
+                postRepository.restorePostsByUserId(id),
+                productRepository.restoreProductsByPostId(id),
+                attribute_productRepository.restoreAttributeProductByUserId(id)
+            ])
 
-            result ? res.status(200) : res.status(400).send('Khôi phục thất bại');
-
+            res.status(200).send('Thành công')
         } catch(err) {
             res.send(400).send(err);
         }

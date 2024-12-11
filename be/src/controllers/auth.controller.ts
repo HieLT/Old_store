@@ -126,6 +126,11 @@ class AuthController {
                 return;
             }
 
+            if (account?.is_deleted) {
+                res.status(403).send('Tài khoản đã bị khóa, vui lòng liên hệ admin để mở khóa')
+                return
+            }
+
             const actorPayload = account_role === ACCOUNT_ROLE.USER ? {email} : {username}
             const accessToken = createToken({ ...actorPayload , account_role}, '15m', accessSecret);
             const refreshToken = createToken({ ...actorPayload , account_role}, '7d', refreshSecret);

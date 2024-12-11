@@ -1,6 +1,7 @@
 import Product, {IProduct} from '../models/product';
 import {ClientSession, Types} from 'mongoose';
 import attributeProductRepository from "./attribute_product.repository";
+import postRepository from './post.repository';
 
 const {ObjectId} = Types
 
@@ -60,6 +61,30 @@ class ProductRepo {
                     // runValidators: !isValidate
                 });
             return result ? result : false;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async deleteProductsByPostId(userId: string): Promise<any> {
+        try {
+            const posts = await postRepository.getAllPostsByUserId(userId)
+            await Promise.all([...
+                posts?.map(post => Product.findOneAndUpdate({_id: post.product_id}, {$set: {is_deleted: true}})
+                )
+            ])
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async restoreProductsByPostId(userId: string): Promise<any> {
+        try {
+            const posts = await postRepository.getAllPostsByUserId(userId)
+            await Promise.all([...
+                posts?.map(post => Product.findOneAndUpdate({_id: post.product_id}, {$set: {is_deleted: false}})
+                )
+            ])
         } catch (err) {
             throw err;
         }

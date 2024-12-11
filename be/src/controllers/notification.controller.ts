@@ -18,7 +18,7 @@ class NotificationController {
             try {
                 const notifications = await NotificationRepo.getNotifications
                     (
-                        account._id,
+                        String(account._id),
                         search_key as string,
                         seen_at as any,
                         Number(page),
@@ -33,44 +33,15 @@ class NotificationController {
             res.status(500).send('Lỗi server');
         }
     }
-    async createNotification(req: Request, res: Response): Promise<void> {
-        const notification = req.body;
+
+    async readNotifications(req: CustomRequest, res: Response): Promise<void> {
+        const account = req?.account;
+        const notificationIds = req.body.notificationIds;
         try {
             try {
-                await NotificationRepo.createNotification(notification);
+                await NotificationRepo.confirmReadNotifications(String(account?._id), notificationIds);
 
-                res.status(201).send('Tạo mới thành công');
-            } catch (err: any) {
-                res.status(400).send(err.message);
-            }
-        } catch {
-            res.status(500).send('Lỗi server');
-        }
-    }
-
-    async updateNotification(req: Request, res: Response): Promise<void> {
-        const notificationId = req.params.id;
-        const notification = req.body;
-        try {
-            try {
-                await NotificationRepo.updateNotification(notificationId, notification);
-
-                res.status(200).send('Cập nhật thành công');
-            } catch (err: any) {
-                res.status(400).send(err.message);
-            }
-        } catch {
-            res.status(500).send('Lỗi server');
-        }
-    }
-
-    async deleteNotification(req: Request, res: Response): Promise<void> {
-        const notificationId = req.params.id;
-        try {
-            try {
-                await NotificationRepo.updateNotification(notificationId, { is_deleted: true });
-
-                res.status(200).send('Xóa nhật thành công');
+                res.status(200).send();
             } catch (err: any) {
                 res.status(400).send(err.message);
             }

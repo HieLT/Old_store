@@ -30,8 +30,7 @@ const AttributeSchema: Schema<IAttribute> = new Schema<IAttribute>({
             // @ts-ignore
             const attributeType = this.input_type
             return (attributeType === CATEGORY_ATTRIBUTE_TYPE.CHECKBOX
-                || attributeType === CATEGORY_ATTRIBUTE_TYPE.DROPDOWN
-                || attributeType === CATEGORY_ATTRIBUTE_TYPE.RADIO)
+                || attributeType === CATEGORY_ATTRIBUTE_TYPE.DROPDOWN)
         }
     },
     is_required: {

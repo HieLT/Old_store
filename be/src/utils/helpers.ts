@@ -1,5 +1,8 @@
 import Joi from "joi";
 import {Types} from "mongoose";
+import { INotification } from "../models/notification";
+import { userSockets } from "../services/socket";
+import { io } from "../server";
 const {ObjectId} = Types
 
 export const getDetailErrorMessage = (error: Joi.ValidationError): any => {
@@ -75,4 +78,12 @@ export const countDuplicateValue = (arr: any, keyInObject: string | null = null)
         return duplicateValues
     }
     return []
+}
+
+export const getOneMonthLater = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiredDate = new Date(today);
+    expiredDate.setDate(today.getDate() + 30);
+    return expiredDate;
 }

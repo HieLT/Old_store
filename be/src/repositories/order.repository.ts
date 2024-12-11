@@ -33,16 +33,15 @@ class OrderRepo {
         page: number = 1,
         limit: number = 10): Promise<any> {
         try {
-            const searchQuery: any = {
+            let searchQuery: any = {
                 customer_id: userId,
                 is_deleted: false,
-                _id: { $regex: searchKey, $options: 'i' },
-
             }
-
+            
+            if (searchKey) searchQuery = {...searchQuery, _id: { $regex: searchKey, $options: 'i' }};
             if (status) searchQuery.status = status
 
-            const orders = Order
+            const orders = await Order
                 .find(searchQuery)
                 .populate({
                     path: 'post_id'
@@ -66,15 +65,15 @@ class OrderRepo {
         page: number = 1,
         limit: number = 10): Promise<any> {
         try {
-            const searchQuery: any = {
+            let searchQuery: any = {
                 'post_id.poster_id': userId,
                 is_deleted: false,
-                _id: { $regex: searchKey, $options: 'i' },
-
             }
+
+            if (searchKey) searchQuery = {...searchQuery, _id: { $regex: searchKey, $options: 'i' }};
             if (status) searchQuery.status = status;
 
-            const orders = Order
+            const orders = await Order
                 .find(searchQuery)
                 .populate({
                     path: 'post_id'

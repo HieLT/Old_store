@@ -18,7 +18,7 @@ export const createCategorySchema = {
             label: Joi.string().trim().required().label('Tên thuộc tính').messages({...validatorMessages}),
             input_type: Joi.string().valid(...Object.values(CATEGORY_ATTRIBUTE_TYPE)).required().label(`Kiểu đầu vào của thuộc tính`).messages({...validatorMessages}),
             initial_value: Joi.when('input_type', {
-                is: Joi.valid(CATEGORY_ATTRIBUTE_TYPE.RADIO,
+                is: Joi.valid(
                     CATEGORY_ATTRIBUTE_TYPE.DROPDOWN,
                     CATEGORY_ATTRIBUTE_TYPE.CHECKBOX
                 ),
@@ -50,7 +50,7 @@ export const updateCategorySchema = {
                     label: Joi.string().trim().required().label('Tên thuộc tính').messages({...validatorMessages}),
                     input_type: Joi.string().valid(...Object.values(CATEGORY_ATTRIBUTE_TYPE)).required().label(`Kiểu đầu vào của thuộc tính`).messages({...validatorMessages}),
                     initial_value: Joi.when('input_type', {
-                        is: Joi.valid(CATEGORY_ATTRIBUTE_TYPE.RADIO,
+                        is: Joi.valid(
                             CATEGORY_ATTRIBUTE_TYPE.DROPDOWN,
                             CATEGORY_ATTRIBUTE_TYPE.CHECKBOX
                         ),

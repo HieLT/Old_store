@@ -5,8 +5,6 @@ import authentication from "../middlewares/authentication";
 import isNotDeleted from "../middlewares/isNotDeleted";
 
 notificationRouter.get('/', [authentication, isNotDeleted], notificationController.getNotifications);
-// notificationRouter.get('/create', [authentication, isNotDeleted], notificationController.createNotification);
-// notificationRouter.patch('/update/:id',[authentication, isNotDeleted] , notificationController.updateNotification);
-notificationRouter.patch('/delete/:id',[authentication, isNotDeleted], notificationController.deleteNotification);
+notificationRouter.patch('/read',[authentication, isNotDeleted] , notificationController.readNotifications);
 
 export default notificationRouter;

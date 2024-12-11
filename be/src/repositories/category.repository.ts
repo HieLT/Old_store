@@ -12,6 +12,9 @@ import {DEFAULT_GET_QUERY} from "../utils/constants";
 import _, {isSafeInteger} from "lodash";
 import {Types} from "mongoose";
 import {ACCOUNT_ROLE, VISIBLE_ACTION} from "../utils/enum";
+import attribute_product from "../models/attribute_product";
+import product from "../models/product";
+import post from "../models/post";
 
 const {ObjectId} = Types
 
@@ -301,8 +304,12 @@ class CategoryRepo {
                         })
                     }
                 }
+                console.log(updateCategoryData);
+
+                const deletedAttrbute = updateCategoryData?.attributes?.map(attribute => attribute.hasOwnProperty('_id') && attribute?.is_deleted)
 
                 /* Update */
+                const deleteAttributeProducts = deletedAttrbute?.map(attributeId => attribute_product.updateMany({attribute_id: attributeId}, {$set: {is_deleted: true}}))
                 const updatePromises = updateCategoryData.attributes?.map(async (item) => {
                     const updatedAttribute = (item?._id && ObjectId.isValid(item?._id as string) &&
                         attributes?.some(attr => String(attr._id) === String(item?._id))) ?
@@ -323,6 +330,7 @@ class CategoryRepo {
                             ...existAttrWithoutRedundant,
                             _id: String(existAttrWithoutRedundant._id)
                         }, item)) {
+                            // request item same with item in db
                             return new Promise((resolve) => {
                                 return resolve(() => {
                                 })
@@ -333,7 +341,7 @@ class CategoryRepo {
                     }
                     return Attribute.create(updatedAttribute)
                 })
-                await Promise.all([category.save(), ...updatePromises])
+                await Promise.all([category.save(), ...updatePromises, ...deleteAttributeProducts])
             }
 
             return res.status(200).send({message: 'Cập nhật danh mục thành công'})
@@ -377,6 +385,7 @@ class CategoryRepo {
             }
 
             category.is_deleted = isDeleted
+            const productIds = await product.distinct("_id", {category_id: categoryObjectId, is_deleted: !isDeleted})
             await Promise.all([
                 category.save(),
                 Attribute.updateMany(
@@ -385,7 +394,14 @@ class CategoryRepo {
                         is_deleted: !isDeleted
                     },
                     {$set: {is_deleted: isDeleted}}
-                )
+                ),
+                product.updateMany({category_id: categoryObjectId, is_deleted: !isDeleted}, {$set: {is_deleted: isDeleted}}),
+                post.updateMany({
+                    product_id: {$in: productIds}
+                }, { $set: { is_deleted: isDeleted } }),
+                attribute_product.updateMany({
+                    product_id: {$in: productIds}
+                }, { $set: { is_deleted: isDeleted } })
             ])
 
             return res.status(200).send(`${isDeleted ? 'Ẩn danh mục thành công' : 'Đã hiển thị danh mục'}`)
