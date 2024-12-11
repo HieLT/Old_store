@@ -20,9 +20,11 @@ import connectSocket from "./src/services/socket";
 
 config();
 
-const hostname = 'localhost';
-const port = 8080;
 const fe_access = process.env.fe_access;
+const base_url = process.env.BASE_URL || "http://localhost:3000";
+const url = new URL(base_url);
+const hostname = url.hostname; // Extract hostname
+const port = parseInt(url.port, 10) || 80; // Extract port, default to 80 if not specified
 
 const app = express()
 const server = http.createServer(app)
@@ -50,5 +52,5 @@ route(app)
 connectSocket(io)
 
 server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+    console.log(`Server running at ${base_url}`);
 });

@@ -3,13 +3,23 @@ import Order, { IOrder } from "../models/order";
 class OrderRepo {
     async getOrder(orderId: string): Promise<any> {
         try {
-            return await Order.findById({ orderId, is_deleted: false })
+            return await Order.findById(orderId,{ is_deleted: false })
                 .populate({
                     path: 'customer_id',
                     select: '-password',
                 })
                 .populate({
                     path: 'post_id',
+                    populate: [
+                        {
+                          path: 'product_id', 
+                          model: 'Product',
+                        },
+                        {
+                          path: 'poster_id', 
+                          model: 'User',
+                        },
+                      ],
                 })
         } catch (err) {
             throw err;
@@ -80,20 +90,27 @@ class OrderRepo {
         }
     }
 
-    async newOrder(order: Partial<IOrder>): Promise<boolean> {
+    async newOrder(order: Partial<IOrder>): Promise<any> {
         try {
             const result = await Order.create(order);
-            return !!result;
+            return result ;
         } catch (err) {
             throw err;
         }
     }
     async updateStatusOrder(orderId: string, status: string): Promise<boolean> {
         try {
-            const result = await Order.findByIdAndUpdate(orderId, { status });
+            const result = await Order.findByIdAndUpdate(orderId, { status }, {runValidators: true});
 
             return !!result;
         } catch (err) {
+            throw err;
+        }
+    }
+    async updateStripePaymentIntentId(orderId: string, paymentIntentId: string): Promise<void> {
+        try{            
+            await Order.findByIdAndUpdate(orderId, {stripe_payment_intent_id: paymentIntentId});        
+        }catch(err){
             throw err;
         }
     }

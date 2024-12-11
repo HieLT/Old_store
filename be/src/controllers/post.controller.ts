@@ -416,7 +416,7 @@ class PostController {
                 NotificationRepo.createNotification({
                     post_id: post._id,
                     title: NOTIFICATION_TITLE.APPROVED_POST,
-                    type: NOTIFICATION_TYPE.POST,
+                    type: NOTIFICATION_TYPE.APPROVED_POST,
                     receiver_id: post.poster_id
                 })
             } catch (err: any) {
@@ -448,7 +448,7 @@ class PostController {
                 NotificationRepo.createNotification({
                     post_id: post._id,
                     title: NOTIFICATION_TITLE.REJECTED_POST,
-                    type: NOTIFICATION_TYPE.POST,
+                    type: NOTIFICATION_TYPE.REJECTED_POST,
                     receiver_id: post.poster_id
                 })
             } catch (err: any) {

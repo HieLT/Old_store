@@ -14,7 +14,8 @@ export interface IUser {
     following_user_ids: Schema.Types.ObjectId[];
     is_deleted: boolean;
     is_google_account: boolean;
-    wishlist: Schema.Types.ObjectId[]
+    wishlist: Schema.Types.ObjectId[];
+    stripe_account_id: string;
 };
 
 const User = new Schema<IUser>({
@@ -61,6 +62,10 @@ const User = new Schema<IUser>({
         type: Boolean , 
         default : false,
         immutable: true
+    },
+    stripe_account_id : {
+        type: String,
+        default: null
     },
     is_deleted: {
         type: Boolean,

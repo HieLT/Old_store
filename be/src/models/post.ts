@@ -11,6 +11,7 @@ export interface IPost {
         city: string | null,
         district: string | null
     };
+    is_ordering: boolean;
     is_deleted: boolean;
 }
 
@@ -44,6 +45,10 @@ const Post = new Schema<IPost>({
             },
         },
         required: [true, "Thiếu location"]
+    },
+    is_ordering: {
+        type: Boolean,
+        default: false
     },
     is_deleted: {
         type: Boolean,

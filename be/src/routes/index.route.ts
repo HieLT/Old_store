@@ -9,7 +9,8 @@ import postRouter from './post.route';
 import wishlistRouter from "./wishlist.route";
 import chatRouter from "./chat.route";
 import orderRouter from './order.route';
-
+import vn_payRouter from './vn_pay.route';
+import stripeRouter from './stripe.route';
 
 const route = (app: any) => {
     app.use('/admin', adminRouter);
@@ -23,6 +24,8 @@ const route = (app: any) => {
     app.use('/wishlist', wishlistRouter);
     app.use('/chat', chatRouter);
     app.use('/order', orderRouter);
+    app.use('/vn_pay', vn_payRouter);
+    app.use('/stripe', stripeRouter);
 };
 
 export default route;
