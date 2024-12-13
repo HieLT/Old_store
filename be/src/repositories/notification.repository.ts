@@ -5,19 +5,19 @@ import { userSockets } from "../services/socket";
 
 const { ObjectId } = Types;
 
-class ConversationRepo {
+class NotificationRepo {
     async sendNotification({
         title,
         type,
         receiver_id,
         post_id,
-        payment_query_object,
+        order_id
     }: {
         title: string;
         type: string;
         receiver_id: string;
         post_id: string | null;
-        payment_query_object: object | null;
+        order_id: string | null;
     }) {
         try {
             const newNotification = await Notification.create({
@@ -25,7 +25,7 @@ class ConversationRepo {
                 type,
                 receiver_id,
                 post_id,
-                payment_query_object,
+                order_id
             });
             const onlineSocketId = Object.keys(userSockets)?.find(
                 (key) => userSockets[key] === String(receiver_id)
@@ -89,4 +89,4 @@ class ConversationRepo {
         }
     }
 }
-export default new ConversationRepo();
+export default new NotificationRepo();

@@ -6,7 +6,7 @@ export interface IOrder extends Document {
     post_id: Schema.Types.ObjectId;
     customer_name: string;
     customer_phone: string;
-    customer_address: Record<string, any>;
+    customer_address: string;
     payment_method: string;
     status: string;
     total: number | null;
@@ -36,7 +36,7 @@ const OrderSchema = new Schema<IOrder>(
             required: true,
         },
         customer_address: {
-            type: Object,
+            type: String,
             required: true,
         },
         payment_method: {

@@ -40,7 +40,7 @@ class OrderController {
 
         try {
             try {
-                const orders = await OrderRepo.getMySellingOrders(
+                const {total, orders} = await OrderRepo.getMySellingOrders(
                     account._id,
                     status as string,
                     search_key as string,
@@ -48,7 +48,7 @@ class OrderController {
                     Number(limit)
                 );
 
-                res.status(200).send(orders)
+                res.status(200).send({total, orders})
             } catch (err: any) {
                 res.status(400).send(err.message);
             }
@@ -62,7 +62,7 @@ class OrderController {
         const { status, search_key, page, limit } = req.query;
         try {
             try {
-                const orders = OrderRepo.getMyByingOrders(
+                const {total, orders} = await OrderRepo.getMyByingOrders(
                     account._id,
                     status as string,
                     search_key as string,
@@ -70,7 +70,7 @@ class OrderController {
                     Number(limit)
                 );
 
-                res.status(200).send(orders);
+                res.status(200).send({total, orders});
             } catch (err: any) {
                 res.status(400).send(err.message);
             }
@@ -81,15 +81,19 @@ class OrderController {
 
     async createOrder(req: CustomRequest, res: Response): Promise<void> {
         const user = req.account;
-        const order = req.body.order as Partial<IOrder>;
+        const order = req.body.order;
 
         try {
+            if (!order.customer_id) {
+                res.status(400).send('Thiếu thông tin người mua')
+                return;
+            }
             const post = await PostRepo.getPost(String(order.post_id));
             const customer = await UserRepo.getUserById(String(order.customer_id));
 
             //order validation
             if (customer.is_deleted) {
-                res.status(403).send('Bạn không thể tạo đơn hàng bởi người dùng đã bị xóa');
+                res.status(403).send('Bạn không thể tạo đơn hàng với người dùng đã bị xóa');
                 return;
             }
 
@@ -114,12 +118,12 @@ class OrderController {
             }
 
             let notification_title, notification_type, order_status;
-            if (order.payment_method === PAYMENT_METHOD.COD) {
-                notification_title = NOTIFICATION_TITLE.PAYMENT_COD;
-                order_status = ORDER_STATUS.PROCESSING;
-                notification_type = NOTIFICATION_TYPE.PAYMENT_COD
-            }
-            else if (order.payment_method === PAYMENT_METHOD.CREDIT) {
+            // if (order.payment_method === PAYMENT_METHOD.COD) {
+            //     notification_title = NOTIFICATION_TITLE.PAYMENT_COD;
+            //     order_status = ORDER_STATUS.PROCESSING;
+            //     notification_type = NOTIFICATION_TYPE.PAYMENT_COD
+            // }
+            // if (order.payment_method === PAYMENT_METHOD.CREDIT) {
                 if (!order.total || order.total < 20000) {
                     res.status(400).send(`Chọn payment_method là ${PAYMENT_METHOD.CREDIT} total phải >= 20000`);
                     return;
@@ -127,7 +131,7 @@ class OrderController {
                 notification_title = NOTIFICATION_TITLE.PAYMENT_CREDIT;
                 order_status = ORDER_STATUS.WAITING_FOR_PAYMENT;
                 notification_type = NOTIFICATION_TYPE.PAYMENT_CREDIT
-            };
+            // };
 
             const newOrder = await OrderRepo.newOrder(
                 {
@@ -138,11 +142,12 @@ class OrderController {
 
             await PostRepo.updatePost(post._id, { is_ordering: true });
 
-            notificationRepo.createNotification({
+            notificationRepo.sendNotification({
                 order_id: newOrder._id,
                 title: notification_title,
                 type: notification_type,
-                receiver_id: order.customer_id
+                receiver_id: order.customer_id,
+                post_id: null
             })
 
             res.status(201).send('Tạo mới thành công');
@@ -183,11 +188,12 @@ class OrderController {
                 const updated = await OrderRepo.updateStatusOrder(order_id, status);
 
                 if (status !== order.status && status === ORDER_STATUS.DELIVERED && updated) {
-                    notificationRepo.createNotification({
+                    notificationRepo.sendNotification({
                         order_id: order._id,
                         title: NOTIFICATION_TITLE.DELIVERED_ORDER,
                         type: NOTIFICATION_TYPE.DELIVERED_ORDER,
-                        receiver_id: order.customer_id
+                        receiver_id: order.customer_id,
+                        post_id: null
                     })
                 }
                 if (status === ORDER_STATUS.CANCELLED && updated) {
@@ -240,7 +246,8 @@ class OrderController {
                     const message = `Bạn nhận được ${amount}+${currency} từ việc đăng bán sản phẩm trong bài post ${order.post_id.title}.Số tiền đã được chuyển vào trong tài khoản stripe mà bạn đã đăng ký: ${receiver}`
                     mail.sendMail({ email, subject, message });
 
-                    notificationRepo.createNotification({
+                    notificationRepo.sendNotification({
+                        post_id: null,
                         order_id: order._id,
                         title: NOTIFICATION_TITLE.RECEIVED,
                         type: NOTIFICATION_TYPE.RECEIVED,

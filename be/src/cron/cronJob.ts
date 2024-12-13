@@ -27,7 +27,7 @@ async function checkExpiredPosts() {
                 type: NOTIFICATION_TYPE.APPROVED_POST,
                 receiver_id: String(post?.poster_id),
                 post_id: String(post?._id),
-                payment_query_object: null
+                order_id: null
             })))
         }
     } catch (err) {

@@ -1,4 +1,5 @@
 import {Document, model, Schema} from 'mongoose';
+import { NOTIFICATION_TYPE } from '../utils/enum';
 
 export interface INotification extends Document {
     post_id : Schema.Types.ObjectId | null;

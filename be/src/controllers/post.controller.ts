@@ -547,7 +547,7 @@ class PostController {
                     type: NOTIFICATION_TYPE.APPROVED_POST,
                     receiver_id: post?.poster_id,
                     post_id: post?._id,
-                    payment_query_object: null,
+                    order_id: null
                 });
             } catch (err: any) {
                 res.status(400).send(err.message);
@@ -583,7 +583,7 @@ class PostController {
                     type: NOTIFICATION_TYPE.REJECTED_POST,
                     receiver_id: post?.poster_id,
                     post_id: post?._id,
-                    payment_query_object: null,
+                    order_id: null
                 });
             } catch (err: any) {
                 res.status(400).send(err.message);
