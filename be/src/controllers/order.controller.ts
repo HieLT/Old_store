@@ -4,7 +4,6 @@ import OrderRepo from "../repositories/order.repository";
 import UserRepo from "../repositories/user.repository";
 import { NOTIFICATION_TITLE, NOTIFICATION_TYPE, ORDER_STATUS, PAYMENT_METHOD, POST_STATUS } from "../utils/enum";
 import notificationRepo from "../repositories/notification.repository";
-import { IOrder } from "../models/order";
 import mail from "../services/mail";
 
 const Stripe = require('stripe');
@@ -82,7 +81,6 @@ class OrderController {
     async createOrder(req: CustomRequest, res: Response): Promise<void> {
         const user = req.account;
         const order = req.body.order;
-
         try {
             if (!order.customer_id) {
                 res.status(400).send('Thiếu thông tin người mua')
@@ -112,7 +110,7 @@ class OrderController {
                 return;
             }
 
-            if (post.is_ordering) {
+            if (await OrderRepo.postIsOrdering(String(post._id))) {
                 res.status(400).send('Bạn đã tạo đơn cho bài post này, nếu muốn tạo lại, hãy hủy đơn cũ');
                 return;
             }
@@ -139,8 +137,6 @@ class OrderController {
                     status: order_status,
                     total: order.total ? order.total : null,
                 });
-
-            await PostRepo.updatePost(post._id, { is_ordering: true });
 
             notificationRepo.sendNotification({
                 order_id: newOrder._id,
@@ -196,9 +192,7 @@ class OrderController {
                         post_id: null
                     })
                 }
-                if (status === ORDER_STATUS.CANCELLED && updated) {
-                    await PostRepo.updatePost(order.post_id, { is_ordering: false });
-                }
+        
                 res.status(200).send('Thay đổi trạng thái thành công');
             } catch (err: any) {
                 res.status(400).send(err.message);
@@ -226,7 +220,7 @@ class OrderController {
 
             try {
                 const updatedOrder = await OrderRepo.updateStatusOrder(order_id, ORDER_STATUS.RECEIVED);
-                await PostRepo.updatePost(order.post_id._id, { status: POST_STATUS.DONE });
+                PostRepo.updatePost(order.post_id._id, { status: POST_STATUS.DONE });
                 if (updatedOrder) {
                     let paymentIntent
                     try {
@@ -242,8 +236,8 @@ class OrderController {
                     const subject = `Bạn nhận được tiền từ một đơn hàng tại ${web_name}`;
                     const amount = paymentIntent.amount;
                     const currency = paymentIntent.currency;
-                    const receiver = order.post_id.poster_id.stripe_account_id;
-                    const message = `Bạn nhận được ${amount}+${currency} từ việc đăng bán sản phẩm trong bài post ${order.post_id.title}.Số tiền đã được chuyển vào trong tài khoản stripe mà bạn đã đăng ký: ${receiver}`
+                    const receiver = paymentIntent.transfer_data.destination;
+                    const message = `Bạn nhận được ${amount}+${currency} từ việc đăng bán sản phẩm trong bài post ${order.post_id.title}.Số tiền đã được chuyển vào trong tài khoản stripe: ${receiver}`
                     mail.sendMail({ email, subject, message });
 
                     notificationRepo.sendNotification({

@@ -12,7 +12,6 @@ export interface IPost {
         district: string | null
     };
     expired_at: Date | null,
-    is_ordering: boolean;
     is_deleted: boolean;
 }
 
@@ -46,10 +45,6 @@ const Post = new Schema<IPost>({
             },
         },
         required: [true, "Thiếu location"]
-    },
-    is_ordering: {
-        type: Boolean,
-        default: false
     },
     expired_at: {
         type: Date || null,

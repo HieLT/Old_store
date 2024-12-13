@@ -1,11 +1,10 @@
 import {Request, Response} from "express";
-import User, {IUser} from '../models/user';
+import {IUser} from '../models/user';
 import {isValidObjectId, Schema, Types} from "mongoose";
 import PostRepository from "../repositories/post.repository";
 import UserRepository from "../repositories/user.repository";
 import conversationRepository from "../repositories/conversation.repository";
 
-const {ObjectId} = Types
 
 interface CustomRequest extends Request {
     account?: any;
@@ -40,7 +39,6 @@ class ChatController {
             await conversationRepository.createOrUpdate(String(user?._id), participantId, latestMentionedPostId)
             return res.status(201).send('');
         } catch (err) {
-            console.log(err)
             return res.status(500).send({message: 'Lỗi máy chủ'});
         }
     }

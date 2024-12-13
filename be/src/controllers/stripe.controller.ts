@@ -23,7 +23,6 @@ class StripeController {
                 res.status(403).send('Bạn không thể thanh toán order của người khác');
                 return;
             }
-            console.log('orderId',order._id);
             
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
@@ -46,7 +45,7 @@ class StripeController {
                     capture_method: 'manual',
                     receipt_email: account.email,
                     transfer_data: {
-                        destination: order.post_id.poster_id.stripe_account_id,
+                        destination: order.receiver_stripe_account_id,
                         amount: order.total
                     },
                     metadata: {

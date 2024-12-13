@@ -1,4 +1,5 @@
 import Order, { IOrder } from "../models/order";
+import { ORDER_STATUS } from "../utils/enum";
 
 class OrderRepo {
     async getOrder(orderId: string): Promise<any> {
@@ -141,6 +142,17 @@ class OrderRepo {
 
             return !!result;
         } catch (err) {
+            throw err;
+        }
+    }
+    async postIsOrdering(postId: string): Promise<boolean> {
+        try {
+            const orderExists = await Order.exists({
+                post_id: postId,
+                status: { $ne: ORDER_STATUS.CANCELLED}, 
+            });
+            return !!orderExists;
+        } catch(err){
             throw err;
         }
     }

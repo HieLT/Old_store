@@ -16,7 +16,6 @@ class UserController {
     async getProfile(req: CustomRequest, res: Response): Promise<void> {
         try {
             const user = req.account as IUser;
-            // @ts-ignore
             const { password: _, ...userDetails } = user?.toObject();
             res.status(200).send(userDetails);
         } catch {
