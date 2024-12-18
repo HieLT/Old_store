@@ -139,8 +139,8 @@ class AuthController {
                 access_token: accessToken ,
                 refresh_token: refreshToken
             });
-        } catch (err) {
-            res.status(500);
+        } catch (err: any) {
+            res.status(500).send(err.message);
         }
     }
     async changePassWord(req: CustomRequest, res: Response) : Promise<void> {

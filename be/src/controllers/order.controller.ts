@@ -110,7 +110,7 @@ class OrderController {
                 return;
             }
 
-            if (await OrderRepo.postIsOrdering(String(post._id))) {
+            if (post.is_ordering) {
                 res.status(400).send('Bạn đã tạo đơn cho bài post này, nếu muốn tạo lại, hãy hủy đơn cũ');
                 return;
             }
@@ -138,6 +138,7 @@ class OrderController {
                     total: order.total ? order.total : null,
                 });
 
+            await PostRepo.updatePost(post._id, {is_ordering: true})    
             notificationRepo.sendNotification({
                 order_id: newOrder._id,
                 title: notification_title,
@@ -259,7 +260,7 @@ class OrderController {
     }
     async cancelOrder(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
-        const { order_id } = req.body.post;
+        const { order_id } = req.body.order;
         try {
             const order = await OrderRepo.getOrder(order_id);
             const createrOrderId = String(order.post_id.poster_id._id);
@@ -280,7 +281,8 @@ class OrderController {
             }
 
             await stripe.paymentIntents.cancel(order.stripe_payment_intent_id);
-
+            await PostRepo.updatePost(order.post_id._id, {is_ordering: false})
+            await OrderRepo.updateStatusOrder(order._id, ORDER_STATUS.CANCELLED)
             res.status(200).send('Hủy đơn thành công');
 
         } catch (err: any) {

@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import Rating, { IRating } from "../models/ratings";
 import userRepository from "./user.repository";
+import user from "../models/user";
 
 const { ObjectId } = Types;
 
@@ -78,6 +79,30 @@ class RatingRepo {
             await rating.save();
         } catch (err) {
             throw err;
+        }
+    }
+
+    async ratingUserDashboard(userId : string):Promise<IRating[]> {
+        try {
+            const ratings = await Rating.aggregate([
+                {
+                    $match: {
+                        reviewee_id: userId,
+                        is_deleted: false
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        averageStars: { $avg: "$stars" },
+                        totalRatings: { $sum: 1 },
+                    },
+                },
+            ]);
+    
+            return ratings
+        } catch (err) {
+            throw err
         }
     }
 }

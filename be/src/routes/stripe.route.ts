@@ -11,6 +11,7 @@ stripeRouter.post('/create-account', authentication, stripeController.createStri
 stripeRouter.get('/account-link/:account_id', stripeController.accountLink)
 stripeRouter.get('/login-link', authentication, stripeController.loginLinks);
 stripeRouter.post('/checkout', authentication, stripeController.checkOut);
+stripeRouter.get('/check-linked-account/:stripe_id',stripeController.checkPayoutEnable);
 //route to get payment-intent_id if checkout successful
 
 

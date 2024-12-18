@@ -12,7 +12,7 @@ import orderRouter from "./order.route";
 import notificationRouter from "./notification.route";
 import ratingRouter from "./rating.route";
 import stripeRouter from './stripe.route';
-
+import userDashboardRouter from "./userDashboard.route";
 const route = (app: any) => {
     app.use("/admin", adminRouter);
     app.use("/auth", authRouter);
@@ -28,6 +28,7 @@ const route = (app: any) => {
     app.use("/notification", notificationRouter);
     app.use("/rating", ratingRouter);
     app.use('/stripe', stripeRouter);
+    app.use('/user-dashboard', userDashboardRouter);
 };
 
 export default route;

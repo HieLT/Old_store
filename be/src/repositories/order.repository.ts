@@ -145,14 +145,129 @@ class OrderRepo {
             throw err;
         }
     }
-    async postIsOrdering(postId: string): Promise<boolean> {
+    //for dashboard
+    async ordersStatusUserDashboard(userId: string): Promise<any> {
         try {
-            const orderExists = await Order.exists({
-                post_id: postId,
-                status: { $ne: ORDER_STATUS.CANCELLED}, 
-            });
-            return !!orderExists;
-        } catch(err){
+            const orderStatus = await Order.aggregate([
+                {
+                    $match: {
+                        is_deleted: false
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "posts",
+                        localField: "post_id",
+                        foreignField: "_id",
+                        as: "posts"
+                    }
+                },
+                {
+                    $unwind: "$posts"
+                },
+                {
+                    $match: {
+                        "posts.poster_id": userId
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 },
+                    },
+                },
+            ]);
+
+            return orderStatus;
+        } catch (err) {
+            throw err;
+        }
+    }
+    async userIsOrdering(userId: string): Promise<boolean> {
+        try {
+            const isOrdering = await Order.findOne(
+                {
+                    customer_id: userId,
+                    status: {
+                        $nin:
+                            [
+                                ORDER_STATUS.CANCELLED,
+                                ORDER_STATUS.WAITING_FOR_PAYMENT,
+                                ORDER_STATUS.RECEIVED
+                            ]
+                    }
+                }
+            )
+            return !!isOrdering;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async getRevenueUserDashboard(userId: string, timeFormat: string): Promise<any> {
+        try {
+            const revenue = await Order.aggregate([
+                {
+                    $match: {
+                        is_deleted: false
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "posts",
+                        localField: "post_id",
+                        foreignField: "_id",
+                        as: "posts"
+                    }
+                },
+                {
+                    $unwind: "$posts"
+                },
+                {
+                    $match: {
+                        "posts.poster_id": userId
+                    }
+                },
+                {
+                    $match: { total: { $ne: null, $gte: 20 } },
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: timeFormat, date: "$updatedAt" } },
+                        totalRevenue: { $sum: "$total" },
+                    },
+                },
+                { $sort: { _id: 1 } },
+            ]);
+            return revenue;
+        } catch (err) {
+            throw err;
+        }
+    }
+    async getExpensesUserDashboard(userId: string, timeFormat: string): Promise<any> {
+        try {
+            const expenses = await Order.aggregate([
+                {
+                    $match: {
+                        customer_id: userId,
+                        is_deleted: false,
+                        status: { $nin: [ORDER_STATUS.WAITING_FOR_PAYMENT, ORDER_STATUS.CANCELLED] },
+                        total: { $ne: null, $gte: 20 },
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: timeFormat, date: "$updatedAt" } },
+                        totalExpenses: { $sum: "$total" },
+                    }
+                },
+                {
+                    $sort: { _id: 1 }
+                }
+            ]);
+
+            return expenses;
+        } catch (err) {
             throw err;
         }
     }

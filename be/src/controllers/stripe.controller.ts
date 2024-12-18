@@ -163,6 +163,17 @@ class StripeController {
             res.status(500).send('Failed to create a new account link. Please try again.');
         }
     };
+    async checkPayoutEnable(req: Request, res: Response): Promise<void> {
+        const stripe_id = req.params.stripe_id
+        try{
+            const account = await stripe.accounts.retrieve(stripe_id);
+
+            if(account.payouts_enabled) res.status(200).send('Tài khoản stripe của bạn đã liên kết với nền tảng website')
+            else res.status(400).send('Tài khoản stripe chưa liên kết với nền tảng website, hãy liên kết với nền tảng website ở phần chỉnh sửa thông tin của bạn')  
+        } catch(err: any){
+            res.status(400).send(err.message);
+        }
+    }
 
 }
 

@@ -23,7 +23,7 @@ config();
 
 const hostname = "localhost";
 const port = 8080;
-const fe_access = process.env.fe_access;
+const fe_access = process.env.FE_ACCESS;
 
 const app = express();
 const server = http.createServer(app);
@@ -66,5 +66,5 @@ const assignSocketToReq = (req: any, res: Response, next: Function) => {
 app.use(assignSocketToReq as any);
 
 server.listen(port, hostname, () => {
-    console.log(`Server running at ${process.env.API_URL}`);
+    console.log(`Server running at ${hostname}://${port}`);
 });

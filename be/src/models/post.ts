@@ -12,6 +12,7 @@ export interface IPost {
         district: string | null
     };
     expired_at: Date | null,
+    is_ordering: boolean;
     is_deleted: boolean;
 }
 
@@ -49,6 +50,10 @@ const Post = new Schema<IPost>({
     expired_at: {
         type: Date || null,
         default: null
+    },
+    is_ordering: {
+        type: Boolean,
+        default :false
     },
     is_deleted: {
         type: Boolean,

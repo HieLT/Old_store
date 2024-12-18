@@ -16,6 +16,8 @@ import { DEFAULT_GET_QUERY } from "../utils/constants";
 import User from "../models/user";
 import notificationRepository from "../repositories/notification.repository";
 import NotificationRepo from '../repositories/notification.repository';
+import { IPost } from "../models/post";
+import orderRepo from "../repositories/order.repository";
 
 const { ObjectId } = Types;
 
@@ -362,7 +364,6 @@ class PostController {
                         req.query.sort_order || DEFAULT_GET_QUERY.SORT_ORDER,
                 }
             );
-
             res.status(200).send(result);
         } catch (err: any) {
             res.status(400).send(err.message);
