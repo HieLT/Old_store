@@ -56,7 +56,6 @@ class NotificationRepo {
                     ...searchQuery,
                     searchKey: { $regex: searchKey, $options: "i" },
                 };
-            if (seen_at === null) searchQuery.seen_at = null;
 
             const result = await Notification.find(searchQuery)
                 .populate("post_id")

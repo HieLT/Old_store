@@ -13,10 +13,9 @@ export interface IOrder extends Document {
     status: string;
     total: number | null;
     receiver_stripe_account_id: string;
-    stripe_payment_intent_id: string; //for capture strpe checkout payment 
+    stripe_payment_intent_id: string; //for capture strpe checkout payment
     cancelled_user_id : Schema.Types.ObjectId;
     is_deleted: boolean;
-
 }
 
 const OrderSchema = new Schema<IOrder>(

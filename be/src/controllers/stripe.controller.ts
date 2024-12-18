@@ -3,7 +3,10 @@ import mail from "../services/mail";
 const Stripe = require('stripe');
 const stripe = Stripe(String(process.env.STRIPE_PRIVATE_KEY));
 const base_url = process.env.BASE_URL;
+const fe_url = process.env.FE_ACCESS;
 import orderRepo from "../repositories/order.repository";
+import userRepository from "../repositories/user.repository";
+import { ORDER_STATUS } from "../utils/enum";
 
 interface CustomRequest extends Request {
     account?: any;
@@ -58,7 +61,7 @@ class StripeController {
             })
             
             res.status(200).send(session.url);
-        } catch (err: any) {  
+        } catch (err: any) {
             res.status(400).send(err.message);
         }
     }
@@ -69,13 +72,14 @@ class StripeController {
             const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
 
             const order_id = paymentIntent.metadata.mongoose_order_id;
-            orderRepo.updateStripePaymentIntentId(order_id,String(paymentIntent.id));
-            
-            
-        }catch(err: any){
+            await Promise.all([
+                orderRepo.updateStripePaymentIntentId(order_id,String(paymentIntent.id)),
+                orderRepo.updateStatusOrder(order_id, ORDER_STATUS.PROCESSING)
+            ]);
+        } catch(err: any){
             console.log(err.message);
         }
-        res.redirect(`${base_url}/payment/successful`)
+        res.redirect(`${fe_url}/payment/success`)
     }
     
     async getStripeAccount(req: CustomRequest, res: Response): Promise<void> {
@@ -138,7 +142,7 @@ class StripeController {
             const email = account.email
             const web_name = process.env.WEB_NAME
             const subject = `Bạn đã tạo tài khoản thanh toán stripe trên trang web ${web_name} `
-            const message = `Bạn đã tạo tài khoản stripe với mã là ${stripeAccount.id}, đây cũng là mã đăng nhập tài khoản stripe của bạn. Để có thể đăng nhập cũng như thanh toán với người dùng khác vui lòng click vào link điền thêm thông tin để có thể liên kết tài khoản stripe với website của chúng tôi. Link: ${base_url}/stripe/account-link/${stripeAccount.id}`
+            const message = `Bạn đã tạo tài khoản stripe với mã là ${stripeAccount.id}, đây cũng là mã đăng nhập tài khoản stripe của bạn. Để có thể đăng nhập cũng như thanh toán với người dùng khác vui lòng click vào link điền thêm thông tin để có thể liên kết tài khoản stripe với website của chúng tôi. Link: ${base_url}/stripe/account-link/${stripeAccount.id}/${account._id}`
 
             await mail.sendMail({ email, subject, message });
             res.status(200).send(`Vui lòng check mail để thực hiện liên kết tài khoản stripe với ${web_name}`);
@@ -148,14 +152,20 @@ class StripeController {
     }
     async accountLink(req: CustomRequest, res: Response): Promise<void> {
         const stripe_account_id = req.params.account_id;
+        const user_id = req.params.user_id;
         try {
-
+            const returnUrl = `${fe_url}/payment/connect-account-result/${stripe_account_id}`
+            const refreshUrl = `${base_url}/stripe/account-link/${stripe_account_id}/${user_id}`
             const accountLink = await stripe.accountLinks.create({
                 account: stripe_account_id,
-                refresh_url: `${base_url}/stripe/account-link/:account_id`,
-                return_url: `${base_url}/stripe/account-link/successfully`,
+                refresh_url: refreshUrl,
+                return_url: returnUrl,
                 type: 'account_onboarding',
             });
+
+            if (accountLink.url === returnUrl) {
+                await userRepository.updateUser(user_id, {stripe_account_id});
+            }
 
             res.redirect(accountLink.url);
         } catch (err: any) {

@@ -38,7 +38,7 @@ const User = new Schema<IUser>({
     },
     babies: {
         type: Schema.Types.ObjectId,
-        ref: 'baby'
+        ref: 'Baby'
     },
     password: {
         type: String,

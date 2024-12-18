@@ -35,7 +35,7 @@ class OrderController {
 
     async getMySellingOrders(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
-        const { status, search_key, page, limit } = req.query;
+        const { status, search_key, page } = req.query;
 
         try {
             try {
@@ -43,8 +43,7 @@ class OrderController {
                     account._id,
                     status as string,
                     search_key as string,
-                    Number(page),
-                    Number(limit)
+                    Number(page) || 1
                 );
 
                 res.status(200).send({total, orders})
@@ -115,6 +114,11 @@ class OrderController {
                 return;
             }
 
+            if (!order.receiver_stripe_account_id) {
+                res.status(400).send('Thiếu tài khoản nhận tiền');
+                return;
+            }
+
             let notification_title, notification_type, order_status;
             // if (order.payment_method === PAYMENT_METHOD.COD) {
             //     notification_title = NOTIFICATION_TITLE.PAYMENT_COD;
@@ -122,13 +126,20 @@ class OrderController {
             //     notification_type = NOTIFICATION_TYPE.PAYMENT_COD
             // }
             // if (order.payment_method === PAYMENT_METHOD.CREDIT) {
-                if (!order.total || order.total < 20000) {
-                    res.status(400).send(`Chọn payment_method là ${PAYMENT_METHOD.CREDIT} total phải >= 20000`);
-                    return;
-                }
-                notification_title = NOTIFICATION_TITLE.PAYMENT_CREDIT;
-                order_status = ORDER_STATUS.WAITING_FOR_PAYMENT;
-                notification_type = NOTIFICATION_TYPE.PAYMENT_CREDIT
+            if (!order.total || order.total < 20000) {
+                res.status(400).send(`Chọn payment_method là ${PAYMENT_METHOD.CREDIT} total phải >= 20000`);
+                return;
+            }
+
+            const stripeAccount = await stripe.accounts.retrieve(order.receiver_stripe_account_id);
+            if (!stripeAccount.payouts_enabled) {
+                res.status(400).send('Tài khoản stripe chưa liên kết với nền tảng website, hãy liên kết với nền tảng website ở phần chỉnh sửa thông tin của bạn')  
+                return;
+            }
+
+            notification_title = NOTIFICATION_TITLE.PAYMENT_CREDIT;
+            order_status = ORDER_STATUS.WAITING_FOR_PAYMENT;
+            notification_type = NOTIFICATION_TYPE.PAYMENT_CREDIT
             // };
 
             const newOrder = await OrderRepo.newOrder(

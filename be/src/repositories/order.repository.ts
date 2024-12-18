@@ -1,5 +1,8 @@
+import { Types } from "mongoose";
 import Order, { IOrder } from "../models/order";
 import { ORDER_STATUS } from "../utils/enum";
+
+const { ObjectId } = Types;
 
 class OrderRepo {
     async getOrder(orderId: string): Promise<any> {
@@ -36,7 +39,7 @@ class OrderRepo {
     ): Promise<any> {
         try {
             let searchQuery: any = {
-                customer_id: userId,
+                customer_id: new ObjectId(userId),
                 is_deleted: false,
             };
 
@@ -47,18 +50,60 @@ class OrderRepo {
                 };
             if (status) searchQuery.status = status;
 
-            const [total, orders] = await Promise.all([
-                Order.countDocuments(searchQuery),
-                Order.find(searchQuery)
-                    .populate({
-                        path: "post_id",
-                    })
-                    .skip((page - 1) * limit)
-                    .limit(limit)
-                    .exec(),
+            const result = await Order.aggregate([
+                {
+                    $lookup: {
+                        from: "posts",
+                        localField: "post_id",
+                        foreignField: "_id",
+                        as: "post",
+                    },
+                },
+                { $unwind: "$post" },
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "post.product_id",
+                        foreignField: "_id",
+                        as: "product",
+                    },
+                },
+                { $unwind: "$product" },
+                { $match: { ...searchQuery } },
+                {
+                    $addFields: {
+                        code: { $concat: ["ORD-", { $toString: "$_id" }] },
+                    },
+                },
+                {
+                    $facet: {
+                        totalRecords: [{ $count: "total" }],
+                        orders: [
+                            {
+                                $addFields: {
+                                    code: {
+                                        $concat: [
+                                            "ORD-",
+                                            { $toString: "$_id" },
+                                        ],
+                                    },
+                                },
+                            },
+                            { $skip: (page - 1) * 10 },
+                            { $limit: 10 },
+                            { $sort: { createdAt: -1 } },
+                        ],
+                    },
+                },
+                {
+                    $project: {
+                        total: { $arrayElemAt: ["$totalRecords.total", 0] },
+                        orders: 1,
+                    },
+                },
             ]);
 
-            return { orders, total };
+            return result?.[0] || { total: 0, orders: [] };
         } catch (err) {
             throw err;
         }
@@ -68,12 +113,11 @@ class OrderRepo {
         userId: string,
         status: string,
         searchKey: string = "",
-        page: number = 1,
-        limit: number = 10
+        page: number
     ): Promise<any> {
         try {
             let searchQuery: any = {
-                "post_id.poster_id": userId,
+                "post.poster_id": new ObjectId(userId),
                 is_deleted: false,
             };
 
@@ -84,18 +128,60 @@ class OrderRepo {
                 };
             if (status) searchQuery.status = status;
 
-            const [total, orders] = await Promise.all([
-                Order.countDocuments(searchQuery),
-                Order.find(searchQuery)
-                    .populate({
-                        path: "post_id",
-                    })
-                    .skip((page - 1) * limit)
-                    .limit(limit)
-                    .exec(),
+            const result = await Order.aggregate([
+                {
+                    $lookup: {
+                        from: "posts",
+                        localField: "post_id",
+                        foreignField: "_id",
+                        as: "post",
+                    },
+                },
+                { $unwind: "$post" },
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "post.product_id",
+                        foreignField: "_id",
+                        as: "product",
+                    },
+                },
+                { $unwind: "$product" },
+                { $match: { ...searchQuery } },
+                {
+                    $addFields: {
+                        code: { $concat: ["ORD-", { $toString: "$_id" }] },
+                    },
+                },
+                {
+                    $facet: {
+                        totalRecords: [{ $count: "total" }],
+                        orders: [
+                            {
+                                $addFields: {
+                                    code: {
+                                        $concat: [
+                                            "ORD-",
+                                            { $toString: "$_id" },
+                                        ],
+                                    },
+                                },
+                            },
+                            { $skip: (page - 1) * 10 },
+                            { $limit: 10 },
+                            { $sort: { createdAt: -1 } },
+                        ],
+                    },
+                },
+                {
+                    $project: {
+                        total: { $arrayElemAt: ["$totalRecords.total", 0] },
+                        orders: 1,
+                    },
+                },
             ]);
 
-            return { total, orders };
+            return result?.[0] || { total: 0, orders: [] };
         } catch (err) {
             throw err;
         }
@@ -128,7 +214,7 @@ class OrderRepo {
     ): Promise<void> {
         try {
             await Order.findByIdAndUpdate(orderId, {
-                stripe_payment_intent_id: paymentIntentId,
+                stripe_payment_intent_id: paymentIntentId
             });
         } catch (err) {
             throw err;
@@ -145,6 +231,18 @@ class OrderRepo {
             throw err;
         }
     }
+    async postIsOrdering(postId: string): Promise<boolean> {
+        try {
+            const orderExists = await Order.exists({
+                post_id: postId,
+                status: { $ne: ORDER_STATUS.CANCELLED},
+            });
+            return !!orderExists;
+        } catch(err){
+            throw err;
+        }
+    }
+
     //for dashboard
     async ordersStatusUserDashboard(userId: string): Promise<any> {
         try {

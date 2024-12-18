@@ -26,13 +26,13 @@ const NotificationSchema = new Schema(
         },
         receiver_id: {
             type: Schema.Types.ObjectId,
-            ref: 'user',
+            ref: 'User',
             immutable: true,
             required: true
         },
         post_id:{
             type: Schema.Types.ObjectId,
-            ref: 'post',
+            ref: 'Post',
             immutable: true,
             default: null
         },

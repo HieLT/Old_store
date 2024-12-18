@@ -50,7 +50,7 @@ app.use(
 );
 app.use(
     cors({
-        origin: [`${fe_access}`, `http://localhost:8080`],
+        origin: '*',
         methods: "GET,POST,PUT,PATCH,DELETE",
         credentials: true,
     })
