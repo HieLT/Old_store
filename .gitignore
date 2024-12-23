@@ -1,3 +1,5 @@
-/node_modules
-.env
+/be/node_modules
+/be/.env
+/be/.idea
 .idea
+/be/build
