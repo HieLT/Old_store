@@ -1,6 +1,8 @@
 import User, { IUser } from "../models/user";
 import bcrypt from "bcrypt";
 import { Types } from "mongoose";
+import order from "../models/order";
+import { ORDER_STATUS } from "../utils/enum";
 
 const { ObjectId } = Types;
 
@@ -80,8 +82,7 @@ class UserRepo {
                     ],
                 };
             }
-            const users = await User
-                .find(searchQuery)
+            const users = await User.find(searchQuery)
                 .skip((page - 1) * limit)
                 .limit(limit) // Limit number of documents per page
                 .exec();
@@ -128,6 +129,44 @@ class UserRepo {
 
     async deleteUser(id: string): Promise<boolean> {
         try {
+            const statusCondition = {
+                status: {
+                    $nin: [
+                        ORDER_STATUS.CANCELLED,
+                        ORDER_STATUS.RECEIVED,
+                        ORDER_STATUS.DELIVERED,
+                    ],
+                },
+            };
+            const [isCustomerInAnOrder, isPosterInAnOrder] = await Promise.all([
+                order.findOne({
+                    customer_id: new ObjectId(id),
+                    is_deleted: false,
+                    ...statusCondition,
+                }),
+                order.aggregate([
+                    {
+                        $lookup: {
+                            from: "posts",
+                            localField: "post_id",
+                            foreignField: "_id",
+                            as: "post",
+                        },
+                    },
+                    {
+                        $match: {
+                            is_deleted: false,
+                            ...statusCondition,
+                            "post.poster_id": new ObjectId(id),
+                        },
+                    },
+                ]),
+            ]);
+
+            if (isCustomerInAnOrder || isPosterInAnOrder?.length > 0) {
+                throw Error("Người dùng đang có đơn hàng chưa được hoàn thành");
+            }
+
             const result = await User.findByIdAndUpdate(
                 { _id: id },
                 { is_deleted: true }

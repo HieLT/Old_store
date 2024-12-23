@@ -304,7 +304,6 @@ class CategoryRepo {
                         })
                     }
                 }
-                console.log(updateCategoryData);
 
                 const deletedAttrbute = updateCategoryData?.attributes?.map(attribute => attribute.hasOwnProperty('_id') && attribute?.is_deleted)
 

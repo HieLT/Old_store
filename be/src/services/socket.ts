@@ -188,10 +188,10 @@ export default async function connectSocket(io: any) {
             );
 
             // Handle user disconnection
-            socket.on("disconnect", () => {
+            socket.on("disconnect", (reason: any) => {
                 // Remove the socketId from userSockets when they disconnect
                 delete userSockets[socket.id];
-                console.log(`Socket ${socket.id} disconnected`);
+                console.log(`Socket ${socket.id} disconnected ${reason}`);
             });
         });
     } catch (err: any) {

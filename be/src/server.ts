@@ -6,18 +6,10 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import passport from "passport";
-import _ from "lodash";
 import * as http from "http";
 import { Server } from "socket.io";
 import connectSocket from "./services/socket";
 import './cron/cronJob'
-// import { createClient } from 'redis';
-
-// const client = createClient();
-
-// client.on('error', err => console.log('Redis Client Error', err));
-
-// client.connect();
 
 config();
 
@@ -30,7 +22,7 @@ const server = http.createServer(app);
 
 export const io = new Server(server, {
     cors: {
-        origin: [`${fe_access}`, `http://localhost:8080`],
+        origin: [`${fe_access}`, `${process.env.BASE_URL}`],
         credentials: true,
     },
 });
@@ -50,7 +42,7 @@ app.use(
 );
 app.use(
     cors({
-        origin: '*',
+        origin: [`${fe_access}`, `${process.env.BASE_URL}`],
         methods: "GET,POST,PUT,PATCH,DELETE",
         credentials: true,
     })
@@ -65,6 +57,6 @@ const assignSocketToReq = (req: any, res: Response, next: Function) => {
 };
 app.use(assignSocketToReq as any);
 
-server.listen(port, hostname, () => {
-    console.log(`Server running at ${hostname}://${port}`);
+server.listen(port, () => {
+    console.log(`Server running at ${process.env.BASE_URL}`);
 });

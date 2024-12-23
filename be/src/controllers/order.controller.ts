@@ -79,7 +79,7 @@ class OrderController {
 
     async createOrder(req: CustomRequest, res: Response): Promise<void> {
         const user = req.account;
-        const order = req.body;
+        const order = req.body.order;
         try {
             if (!order.customer_id) {
                 res.status(400).send('Thiếu thông tin người mua')
@@ -149,8 +149,8 @@ class OrderController {
                     total: order.total ? order.total : null,
                 });
 
-            await PostRepo.updatePost(post._id, {is_ordering: true})    
-            notificationRepo.sendNotification({
+            await PostRepo.updatePost(post._id, {is_ordering: true})
+            await notificationRepo.sendNotification({
                 order_id: newOrder._id,
                 title: notification_title,
                 type: notification_type,
@@ -196,7 +196,7 @@ class OrderController {
                 const updated = await OrderRepo.updateStatusOrder(order_id, status);
 
                 if (status !== order.status && status === ORDER_STATUS.DELIVERED && updated) {
-                    notificationRepo.sendNotification({
+                    await notificationRepo.sendNotification({
                         order_id: order._id,
                         title: NOTIFICATION_TITLE.DELIVERED_ORDER,
                         type: NOTIFICATION_TYPE.DELIVERED_ORDER,
@@ -232,7 +232,7 @@ class OrderController {
 
             try {
                 const updatedOrder = await OrderRepo.updateStatusOrder(order_id, ORDER_STATUS.RECEIVED);
-                PostRepo.updatePost(order.post_id._id, { status: POST_STATUS.DONE });
+                await PostRepo.updatePost(order.post_id._id, { status: POST_STATUS.DONE });
                 if (updatedOrder) {
                     let paymentIntent
                     try {
@@ -252,7 +252,7 @@ class OrderController {
                     const message = `Bạn nhận được ${amount}+${currency} từ việc đăng bán sản phẩm trong bài post ${order.post_id.title}.Số tiền đã được chuyển vào trong tài khoản stripe: ${receiver}`
                     mail.sendMail({ email, subject, message });
 
-                    notificationRepo.sendNotification({
+                    await notificationRepo.sendNotification({
                         post_id: null,
                         order_id: order._id,
                         title: NOTIFICATION_TITLE.RECEIVED,

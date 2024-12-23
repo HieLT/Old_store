@@ -27,12 +27,14 @@ class NotificationRepo {
                 post_id,
                 order_id
             });
-            const onlineSocketId = Object.keys(userSockets)?.find(
+            const onlineSocketIds = Object.keys(userSockets)?.filter(
                 (key) => userSockets[key] === String(receiver_id)
             );
 
-            if (onlineSocketId) {
-                io.to(onlineSocketId).emit("notification", { newNotification });
+            if (onlineSocketIds?.length > 0) {
+                onlineSocketIds?.forEach((socketId: string) => {
+                    io.to(socketId).emit("notification", { newNotification });
+                })
             }
         } catch (err) {
             throw err;
