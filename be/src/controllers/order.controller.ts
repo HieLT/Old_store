@@ -80,7 +80,7 @@ class OrderController {
 
     async createOrder(req: CustomRequest, res: Response): Promise<void> {
         const user = req.account;
-        const order = req.body.order;
+        const order = req.body;
         try {
             if (!order.customer_id) {
                 res.status(400).send('Thiếu thông tin người mua')

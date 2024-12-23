@@ -25,9 +25,10 @@ class BabyController {
         try {
             const user = req.account as IUser;
 
-            const baby = req.body.baby as IBaby;
+            let baby = req.body.baby as IBaby;
             baby.parent_id = user._id;
-
+            console.log(baby);
+            
             try {
                 const result = await BabyRepo.createBaby(baby);
                 res.status(201).send('Tạo mới thành công');
@@ -39,8 +40,8 @@ class BabyController {
                 });
                 res.status(400).send(message);
             }
-        } catch (err) {
-            res.status(400).send(err);
+        } catch (err: any) {
+            res.status(400).send(err.message);
         }
 
     }
