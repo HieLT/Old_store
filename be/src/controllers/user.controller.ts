@@ -15,7 +15,7 @@ interface CustomRequest extends Request {
 class UserController {
     async getProfile(req: CustomRequest, res: Response): Promise<void> {
         try {
-            const user = req.account as IUser;
+            const user = req.account;
             const { password: _, ...userDetails } = user?.toObject();
             res.status(200).send(userDetails);
         } catch {
