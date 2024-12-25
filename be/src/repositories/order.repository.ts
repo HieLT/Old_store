@@ -195,11 +195,12 @@ class OrderRepo {
             throw err;
         }
     }
-    async updateStatusOrder(orderId: string, status: string): Promise<boolean> {
+    async updateStatusOrder(cancelledUserId: string | null, orderId: string, status: string): Promise<boolean> {
         try {
+            const updateQuery = cancelledUserId ? { status, cancelled_user_id: cancelledUserId } : { status };
             const result = await Order.findByIdAndUpdate(
                 orderId,
-                { status },
+                updateQuery,
                 { runValidators: true }
             );
 

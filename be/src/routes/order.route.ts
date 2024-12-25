@@ -10,5 +10,6 @@ orderRouter.get('/get-my-selling-orders',[authentication, isNotDeleted], OrderCo
 orderRouter.get('/get-my-buying-orders',[authentication, isNotDeleted], OrderController.getMyBuyingOrders);
 orderRouter.patch('/update-order-status', [authentication, isNotDeleted], OrderController.updateOrderStatus);
 orderRouter.patch('/received-order', [authentication, isNotDeleted], OrderController.receivedOrder);
+orderRouter.patch('/cancel', [authentication, isNotDeleted], OrderController.cancelOrder);
 
 export default orderRouter;

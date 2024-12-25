@@ -25,9 +25,8 @@ class BabyController {
         try {
             const user = req.account as IUser;
 
-            let baby = req.body.baby as IBaby;
+            let baby = req.body as IBaby;
             baby.parent_id = user._id;
-            console.log(baby);
             
             try {
                 const result = await BabyRepo.createBaby(baby);
@@ -48,7 +47,7 @@ class BabyController {
     async updateBaby(req: CustomRequest, res: Response): Promise<void> {
         try {
             const { id } = req.params;
-            const baby = req.body.baby
+            const baby = req.body
             const user = req.account as IUser;
 
             const getBaby = await BabyRepo.getBaby(id);

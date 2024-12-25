@@ -74,7 +74,7 @@ class StripeController {
             const order_id = paymentIntent.metadata.mongoose_order_id;
             await Promise.all([
                 orderRepo.updateStripePaymentIntentId(order_id,String(paymentIntent.id)),
-                orderRepo.updateStatusOrder(order_id, ORDER_STATUS.PROCESSING)
+                orderRepo.updateStatusOrder(null, order_id, ORDER_STATUS.PROCESSING)
             ]);
         } catch(err: any){
             console.log(err.message);

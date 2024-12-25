@@ -57,6 +57,6 @@ const assignSocketToReq = (req: any, res: Response, next: Function) => {
 };
 app.use(assignSocketToReq as any);
 
-server.listen(port, () => {
+server.listen(port, hostname, () => {
     console.log(`Server running at ${process.env.BASE_URL}`);
 });

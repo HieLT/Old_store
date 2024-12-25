@@ -171,7 +171,7 @@ class OrderController {
         try {
 
             if (status === ORDER_STATUS.RECEIVED || status === ORDER_STATUS.WAITING_FOR_PAYMENT) {
-                res.status(403).send('Bạn không có quyền thay đổi trạng thái này');
+                res.status(400).send('Bạn không có quyền thay đổi trạng thái này');
                 return;
             }
 
@@ -183,17 +183,17 @@ class OrderController {
             }
 
             if (String(order?.post_id.poster_id._id) !== String(account._id)) {
-                res.status(403).send('Bạn không có quyền thay đổi trạng thái post này');
+                res.status(400).send('Bạn không có quyền thay đổi trạng thái bài đăng này');
                 return;
             }
 
             if (order.customer_id.is_deleted) {
-                res.status(403).send('Bạn không thể cập nhật trạng thái bởi người dùng đã bị xóa');
+                res.status(400).send('Bạn không thể cập nhật trạng thái bởi người dùng đã bị xóa');
                 return;
             }
 
             try {
-                const updated = await OrderRepo.updateStatusOrder(order_id, status);
+                const updated = await OrderRepo.updateStatusOrder(null, order_id, status);
 
                 if (status !== order.status && status === ORDER_STATUS.DELIVERED && updated) {
                     await notificationRepo.sendNotification({
@@ -217,7 +217,7 @@ class OrderController {
     async receivedOrder(req: CustomRequest, res: Response): Promise<void> {
         try {
             const account = req.account;
-            const { order_id } = req.body.post;
+            const { order_id } = req.body.order;
 
             const order = await OrderRepo.getOrder(order_id);
 
@@ -226,12 +226,13 @@ class OrderController {
                 return;
             }
 
-            if (String(account._id) !== String(order.customer_id) || order.status !== ORDER_STATUS.DELIVERED) {
-                res.status(403).send('Bạn không có quyền thay đổi thành trạng thái này');
+            if (String(account._id) !== String(order.customer_id._id) || order.status !== ORDER_STATUS.DELIVERED) {
+                res.status(400).send('Bạn không có quyền thay đổi thành trạng thái này');
+                return;
             }
 
             try {
-                const updatedOrder = await OrderRepo.updateStatusOrder(order_id, ORDER_STATUS.RECEIVED);
+                const updatedOrder = await OrderRepo.updateStatusOrder(null, order_id, ORDER_STATUS.RECEIVED);
                 await PostRepo.updatePost(order.post_id._id, { status: POST_STATUS.DONE });
                 if (updatedOrder) {
                     let paymentIntent
@@ -239,8 +240,8 @@ class OrderController {
                         // Capture the authorized payment
                         paymentIntent = await stripe.paymentIntents.capture(order.stripe_payment_intent_id);
                     } catch (err: any) {
-
                         res.status(500).send(err.message);
+                        return;
                     }
 
                     const email = order.post_id.poster_id.email;
@@ -259,6 +260,8 @@ class OrderController {
                         type: NOTIFICATION_TYPE.RECEIVED,
                         receiver_id: order.post_id.poster_id._id
                     })
+
+                    res.status(200).send('Xác nhận đã nhận hàng thành công')
                 }
             } catch (err: any) {
                 res.status(400).send(err.message);
@@ -277,25 +280,31 @@ class OrderController {
             const createrOrderId = String(order.post_id.poster_id._id);
             const buyerOrderId = String(order.customer_id._id);
             if (String(account._id) !== createrOrderId && String(account._id) !== buyerOrderId) {
-                res.status(403).send('Bạn không có quyền thay đổi đơn này');
+                res.status(400).send('Bạn không có quyền thay đổi đơn này');
                 return;
             }
 
-            if (
-                order.status === ORDER_STATUS.DELIVERED ||
-                order.status === ORDER_STATUS.CANCELLED ||
-                order.status === ORDER_STATUS.DERLIVERING ||
-                order.status === ORDER_STATUS.DELIVERED
-            ) {
-                res.status(403).send('Đơn ở trạng thái này không được phép hoàn lại');
+            if (order.status !== ORDER_STATUS.WAITING_FOR_PAYMENT && order.status !== ORDER_STATUS.PROCESSING) {
+                res.status(400).send('Đơn ở trạng thái này không được phép hoàn lại');
                 return;
             }
 
-            await stripe.paymentIntents.cancel(order.stripe_payment_intent_id);
-            await PostRepo.updatePost(order.post_id._id, {is_ordering: false})
-            await OrderRepo.updateStatusOrder(order._id, ORDER_STATUS.CANCELLED)
+            if (order.status === ORDER_STATUS.PROCESSING) {
+                await stripe.paymentIntents.cancel(order.stripe_payment_intent_id);
+            }
+            await Promise.all([
+                PostRepo.updatePost(order.post_id._id, {is_ordering: false}),
+                OrderRepo.updateStatusOrder(String(account._id), order._id, ORDER_STATUS.CANCELLED),
+                notificationRepo.sendNotification({
+                    order_id,
+                    post_id: order?.post_id,
+                    receiver_id: String(account.id) === createrOrderId ? buyerOrderId : createrOrderId,
+                    title: `Đơn hàng mã ORD-${order.id} đã bị hủy. Nhấn vào để kiểm tra`,
+                    type: NOTIFICATION_TYPE.CANCELLED_ORDER
+                })
+            ])
+
             res.status(200).send('Hủy đơn thành công');
-
         } catch (err: any) {
             res.status(400).send(err.message);
         }

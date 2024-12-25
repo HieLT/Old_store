@@ -66,7 +66,9 @@ export const NOTIFICATION_TYPE = {
     ORDER: "order",
     PAYMENT_CREDIT : 'payment_credit',
     DELIVERED_ORDER : 'delivered_order',
-    RECEIVED : 'received'
+    RECEIVED : 'received',
+    CANCELLED_ORDER: 'cancelled_order',
+    UPDATED_CATEGORY: 'updated_category'
 };
 
 export const NOTIFICATION_TITLE = {

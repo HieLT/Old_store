@@ -11,10 +11,11 @@ import Category from "../models/category";
 import {DEFAULT_GET_QUERY} from "../utils/constants";
 import _, {isSafeInteger} from "lodash";
 import {Types} from "mongoose";
-import {ACCOUNT_ROLE, VISIBLE_ACTION} from "../utils/enum";
+import {ACCOUNT_ROLE, NOTIFICATION_TYPE, POST_STATUS, VISIBLE_ACTION} from "../utils/enum";
 import attribute_product from "../models/attribute_product";
 import product from "../models/product";
 import post from "../models/post";
+import notificationRepository from "./notification.repository";
 
 const {ObjectId} = Types
 
@@ -305,7 +306,7 @@ class CategoryRepo {
                     }
                 }
 
-                const deletedAttrbute = updateCategoryData?.attributes?.map(attribute => attribute.hasOwnProperty('_id') && attribute?.is_deleted)
+                const deletedAttrbute = updateCategoryData?.attributes?.filter(attribute => attribute.hasOwnProperty('_id') && attribute?.is_deleted)
 
                 /* Update */
                 const deleteAttributeProducts = deletedAttrbute?.map(attributeId => attribute_product.updateMany({attribute_id: attributeId}, {$set: {is_deleted: true}}))
@@ -342,6 +343,56 @@ class CategoryRepo {
                 })
                 await Promise.all([category.save(), ...updatePromises, ...deleteAttributeProducts])
             }
+
+            const oldPostsUsingCategory = await post.aggregate([
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: 'product_id',
+                        foreignField: '_id',
+                        as: 'product'
+                    },
+                },
+                { $unwind: '$product' },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'poster_id',
+                        foreignField: '_id',
+                        as: 'poster'
+                    },
+                },
+                { $unwind: '$poster' },
+                {
+                    $group: {
+                        _id: '$poster._id',
+                        post: { $first: '$$ROOT' }
+                    }
+                },
+                {
+                    $replaceRoot: { newRoot: '$post' }
+                },
+                { 
+                    $match: {
+                        'product.category_id': new ObjectId(categoryId),
+                        'product.is_deleted': false,
+                        status: { $in: [POST_STATUS.APPROVED, POST_STATUS.PENDING] },
+                        is_deleted: false,
+                        is_ordering: false,
+                        'poster.is_deleted': false
+                    } 
+                },
+            ])
+
+            await Promise.all(oldPostsUsingCategory?.map(post => {
+                return notificationRepository.sendNotification({
+                    post_id: post._id,
+                    order_id: null,
+                    title: `Các thuộc tính của danh mục ${category.name} đã thay đổi. Vui lòng cập nhật bài đăng theo các thuộc tính mới.`,
+                    type: NOTIFICATION_TYPE.RECEIVED,
+                    receiver_id: post.poster._id
+                })
+            }))
 
             return res.status(200).send({message: 'Cập nhật danh mục thành công'})
 
