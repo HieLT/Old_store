@@ -2,17 +2,17 @@
     "version": 2,
     "builds": [
         {
-            "src": "be/src/server.ts",
+            "src": "server.ts",
             "use": "@vercel/node",
             "config": {
-                "tsconfig": "be/tsconfig.json"
+                "tsconfig": "tsconfig.json"
             }
         }
     ],
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "be/src/server.ts"
+            "dest": "server.ts"
         }
     ]
 }
