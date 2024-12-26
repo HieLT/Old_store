@@ -67,8 +67,7 @@ const setAuthCookies = (
 ): void => {
     const cookieOptions = {
         httpOnly: true,
-        secure: false,
-        sameSite: "lax" as const,
+        secure: true,
         maxAge: 3600000,
     };
     res.cookie("access_token", accessToken, cookieOptions);
