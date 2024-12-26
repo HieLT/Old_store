@@ -67,7 +67,7 @@ const setAuthCookies = (
 ): void => {
     const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "development",
+        secure: false,
         sameSite: "lax" as const,
         maxAge: 3600000,
     };
