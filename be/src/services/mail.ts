@@ -17,7 +17,8 @@ class MailService{
         from: process.env.SMPT_MAIL,
         to: options.email,
         subject: options.subject,
-        text: options.message,
+        text: options.message || '',
+        html: options.htmlTemplate || ''
       };
   
       await transporter.sendMail(mailOptions);

@@ -7,7 +7,7 @@ config();
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: "http://localhost:8080/auth/google/callback",
+    callbackURL: `${process.env.BASE_URL}/auth/google/callback`,
     scope: ["profile", "email"],
     passReqToCallback: true
   }, async (req, accessToken:any, refreshToken:any, profile:any, done:any)=> {
@@ -22,6 +22,7 @@ passport.use(new GoogleStrategy({
             password: null,
             firstname: profile.name.familyName,
             lastname: profile.name.givenName,
+            avatar: profile.photos?.[0]?.value,
             is_google_account : true
         });
         }catch {
