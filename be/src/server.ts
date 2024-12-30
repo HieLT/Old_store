@@ -23,7 +23,7 @@ const server = http.createServer(app);
 
 export const io = new Server(server, {
     cors: {
-        origin: `*`,
+        origin: fe_access,
         credentials: true,
     },
 });
