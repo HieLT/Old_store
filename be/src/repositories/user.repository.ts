@@ -239,5 +239,31 @@ class UserRepo {
             throw err;
         }
     }
+    //for dashboard
+    async getUserRegistrationStats(timeFormat: string): Promise<any> {
+        try {
+            return await User.aggregate([
+                {
+                    $group: {
+                        _id: { $dateToString: { format: timeFormat, date: "$updatedAt" } },
+                        count: { $sum: 1 },
+                    },
+                },
+                { $sort: { _id: 1 } },
+            ]); 
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async getNumberOfUserCurrently(): Promise<any> {
+        try {
+            return await User.countDocuments(
+                {is_deleted: false}
+            )
+        } catch (err) {
+            throw err;
+        }
+    }
 }
 export default new UserRepo();

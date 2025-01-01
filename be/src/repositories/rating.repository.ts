@@ -1,7 +1,6 @@
 import { Types } from "mongoose";
 import Rating, { IRating } from "../models/ratings";
 import userRepository from "./user.repository";
-import user from "../models/user";
 
 const { ObjectId } = Types;
 
@@ -82,7 +81,7 @@ class RatingRepo {
         }
     }
 
-    async ratingUserDashboard(userId : string):Promise<IRating[]> {
+    async getRatingUserDashboard(userId : string):Promise<IRating[]> {
         try {
             const ratings = await Rating.aggregate([
                 {

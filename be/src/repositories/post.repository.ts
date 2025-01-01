@@ -22,7 +22,7 @@ class PostRepo {
         try {
             if (isForVisibility) {
                 return Post.aggregate([
-                    {$match: {poster_id: new ObjectId(userId)}},
+                    { $match: { poster_id: new ObjectId(userId) } },
                     {
                         $lookup: {
                             from: "products",
@@ -67,34 +67,34 @@ class PostRepo {
         try {
             const searchFilter = search_key
                 ? {
-                      $or: [
-                          { title: { $regex: search_key, $options: "i" } },
-                          {
-                              "poster.firstname": {
-                                  $regex: search_key,
-                                  $options: "i",
-                              },
-                          },
-                          {
-                              "poster.lastname": {
-                                  $regex: search_key,
-                                  $options: "i",
-                              },
-                          },
-                          {
-                              "poster.phone": {
-                                  $regex: search_key,
-                                  $options: "i",
-                              },
-                          },
-                          {
-                              "poster.email": {
-                                  $regex: search_key,
-                                  $options: "i",
-                              },
-                          },
-                      ],
-                  }
+                    $or: [
+                        { title: { $regex: search_key, $options: "i" } },
+                        {
+                            "poster.firstname": {
+                                $regex: search_key,
+                                $options: "i",
+                            },
+                        },
+                        {
+                            "poster.lastname": {
+                                $regex: search_key,
+                                $options: "i",
+                            },
+                        },
+                        {
+                            "poster.phone": {
+                                $regex: search_key,
+                                $options: "i",
+                            },
+                        },
+                        {
+                            "poster.email": {
+                                $regex: search_key,
+                                $options: "i",
+                            },
+                        },
+                    ],
+                }
                 : {};
             let sortOrder = DEFAULT_GET_QUERY.SORT_ORDER;
             try {
@@ -306,10 +306,10 @@ class PostRepo {
                                 : {}),
                             ...(category_ids
                                 ? {
-                                      "product.category_id": {
-                                          $in: categoryIds,
-                                      },
-                                  }
+                                    "product.category_id": {
+                                        $in: categoryIds,
+                                    },
+                                }
                                 : {}),
                         },
                     },
@@ -541,6 +541,75 @@ class PostRepo {
             throw err;
         }
     }
+
+    // for dashboard
+    async getPostsByStatus(): Promise<any> {
+        try {
+            return await Post.aggregate([
+                {
+                    $match: {
+                        status: {$ne: POST_STATUS.DRAFT},
+                        is_deleted: false
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 },
+                    },
+                },
+            ]);
+        } catch (err) {
+            throw err;
+        }
+    };
+
+    async getPostsPerCategory(): Promise<any> {
+        try {
+            return await Post.aggregate([
+                {
+                    $lookup: {
+                        from: "category",
+                        localField: "category_id",
+                        foreignField: "_id",
+                        as: "category"
+                    }
+                },
+                {
+                    $unwind: "$category",
+                },
+                {
+                    $group: {
+                        _id: { category_id: "$category_id", category_name: "$category.name" },
+                        count: { $sum: 1 },
+                    },
+                },
+                { $sort: { count: -1 } },
+                {
+                    $project: {
+                        _id: 0,
+                        categoryName: "$_id.categoryName",
+                        count: 1,
+                    },
+                },
+            ])
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async getNumberOfPostCurrently(): Promise<any> {
+            try {
+                return await Post.countDocuments(
+                    {
+                        is_deleted: false,
+                        status: { $nin : [POST_STATUS.DRAFT,POST_STATUS.PENDING,POST_STATUS.REJECTED]}
+                    }
+                )
+            } catch (err) {
+                throw err;
+            }
+        }
 }
 
 export default new PostRepo();

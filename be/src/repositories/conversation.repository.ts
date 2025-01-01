@@ -26,5 +26,21 @@ class ConversationRepo {
             throw err;
         }
     }
+
+    async getActiveConversations (time: string): Promise<any> {
+        try{
+            return await Conversation.aggregate([
+                {
+                  $group: {
+                    _id: {$dateToString: { format: time, date: "$updatedAt" }},
+                    count: { $sum: 1 },
+                  },
+                },
+                { $sort: { _id: 1 } },
+              ]);
+        } catch(err){
+            throw err;
+        }
+    }
 }
 export default new ConversationRepo();

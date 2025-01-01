@@ -7,16 +7,16 @@ import bcrypt from "bcrypt";
 import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
 import passport from "../utils/passport";
-import {ACCOUNT_ROLE} from "../utils/enum";
+import { ACCOUNT_ROLE } from "../utils/enum";
 
 interface CustomRequest extends Request {
-    account?: any;  
+    account?: any;
 }
 
 
-const fe_access = process.env.FE_ACCESS ;
-const accessSecret = process.env.ACCESS_SECRET_KEY! ;
-const refreshSecret = process.env.REFRESH_SECRET_KEY! ;
+const fe_access = process.env.FE_ACCESS;
+const accessSecret = process.env.ACCESS_SECRET_KEY!;
+const refreshSecret = process.env.REFRESH_SECRET_KEY!;
 
 const createToken = (payload: object, expiresIn: string, secretKey: string): string => {
     const options: SignOptions = { expiresIn };
@@ -24,19 +24,19 @@ const createToken = (payload: object, expiresIn: string, secretKey: string): str
 };
 
 const handleRefuseLogin = (res: Response, account: any): void => {
-    if (!account ){
+    if (!account) {
         res.status(400).send('Tài khoản không tồn tại');
-    } 
-    else if (account.is_deleted) { 
+    }
+    else if (account.is_deleted) {
         res.status(403).send('Người dùng đã bị xóa, liên hệ quản trị viên để mở khóa');
-    }  
+    }
     else if (account.is_google_account) {
         res.status(422).send('Tài khoản Google không hợp lệ, vui lòng đăng nhập lại');
-    } 
+    }
     else {
         res.status(401).send('Email hoặc mật khẩu không chính xác');
     }
-    
+
 };
 
 const sendEmail = async (email: string, subject: string, message: string, res: Response): Promise<void> => {
@@ -51,12 +51,12 @@ const sendEmail = async (email: string, subject: string, message: string, res: R
     }
 };
 
-const setAuthCookies = (res: Response, token: string, userProfile: any): void =>{
+const setAuthCookies = (res: Response, token: string, userProfile: any): void => {
     const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'development',
         sameSite: 'lax' as const,
-        maxAge: 3600000 
+        maxAge: 3600000
     };
     res.cookie('auth_token', token, cookieOptions);
     res.cookie('user_profile', userProfile, cookieOptions);
@@ -65,9 +65,9 @@ const setAuthCookies = (res: Response, token: string, userProfile: any): void =>
 class AuthController {
     async register(req: Request, res: Response): Promise<void> {
         try {
-            const { email, password, firstname, lastname} = req.body;
+            const { email, password, firstname, lastname } = req.body;
 
-            if(!email || !validateEmail.validate(email)){
+            if (!email || !validateEmail.validate(email)) {
                 res.status(400).send('Email không đáp ứng yêu cầu');
                 return;
             }
@@ -77,12 +77,12 @@ class AuthController {
                 res.status(400).send('Người dùng đã tồn tại');
                 return;
             }
-            if(!password || !validatePassword(password)){
+            if (!password || !validatePassword(password)) {
                 res.status(400).send('Mật khẩu không đáp ứng yêu cầu');
                 return;
             }
 
-            const activationToken = createToken({ email, password , firstname, lastname }, '3d', accessSecret);
+            const activationToken = createToken({ email, password, firstname, lastname }, '3d', accessSecret);
             const activationUrl = `${fe_access}/verify-email/${activationToken}`;
             const message = `Xin chào, vui lòng nhấp vào liên kết này để kích hoạt tài khoản của bạn: ${activationUrl}`;
             await sendEmail(email, "Xác nhận tài khoản của bạn", message, res);
@@ -94,11 +94,11 @@ class AuthController {
     async login(req: Request, res: Response): Promise<void> {
         try {
             const { email, password, account_role, username } = req.body;
-            if ( !account_role ){
+            if (!account_role) {
                 res.status(400).send('Thiếu account_role');
                 return;
             }
-            if(account_role === ACCOUNT_ROLE.USER && (!email || !validateEmail.validate(email))){
+            if (account_role === ACCOUNT_ROLE.USER && (!email || !validateEmail.validate(email))) {
                 res.status(400).send('Email không đáp ứng yêu cầu');
                 return;
             }
@@ -109,16 +109,16 @@ class AuthController {
             }
 
             //accont_role :  admin or user 
-            let account ;
-            if ( account_role === ACCOUNT_ROLE.USER) account = await UserRepo.getUserByEmail(email) ;
+            let account;
+            if (account_role === ACCOUNT_ROLE.USER) account = await UserRepo.getUserByEmail(email);
             else account = await AdminRepo.getAdminByUsername(username);
-            
+
             if (!account || account.is_google_account || account.is_delete) {
                 handleRefuseLogin(res, account);
                 return;
             }
-           
-            
+
+
             const isPasswordCorrect = await bcrypt.compare(password, account.password!);
 
             if (!isPasswordCorrect) {
@@ -131,24 +131,24 @@ class AuthController {
                 return
             }
 
-            const actorPayload = account_role === ACCOUNT_ROLE.USER ? {email} : {username}
-            const accessToken = createToken({ ...actorPayload , account_role}, '15m', accessSecret);
-            const refreshToken = createToken({ ...actorPayload , account_role}, '7d', refreshSecret);
-            
+            const actorPayload = account_role === ACCOUNT_ROLE.USER ? { email } : { username }
+            const accessToken = createToken({ ...actorPayload, account_role }, '15m', accessSecret);
+            const refreshToken = createToken({ ...actorPayload, account_role }, '7d', refreshSecret);
+
             res.status(200).send({
-                access_token: accessToken ,
+                access_token: accessToken,
                 refresh_token: refreshToken
             });
         } catch (err: any) {
             res.status(500).send(err.message);
         }
     }
-    async changePassWord(req: CustomRequest, res: Response) : Promise<void> {
-        try{
-            const {oldPassword, newPassword} = req.body;
+    async changePassWord(req: CustomRequest, res: Response): Promise<void> {
+        try {
+            const { oldPassword, newPassword } = req.body;
             const account = req.account;
 
-            if (!validatePassword(newPassword)){
+            if (!validatePassword(newPassword)) {
                 res.status(400).send('Mật khẩu mới không đáp ứng yêu cầu');
                 return;
             }
@@ -159,11 +159,11 @@ class AuthController {
                 return;
             }
 
-            if ( account.account_role === ACCOUNT_ROLE.USER) await UserRepo.updateUser(account._id, {password : newPassword});
-            else await AdminRepo.updateAdmin(account._id, {password : newPassword});
+            if (account.account_role === ACCOUNT_ROLE.USER) await UserRepo.updateUser(account._id, { password: newPassword });
+            else await AdminRepo.updateAdmin(account._id, { password: newPassword });
 
             res.status(200).send('Cập nhật thành công');
-        } catch{
+        } catch {
             res.status(500);
         }
     }
@@ -171,23 +171,23 @@ class AuthController {
     getNewAccessToken(req: Request, res: Response) {
         try {
             const { refreshToken } = req.body;
-            const decoded = jwt.verify(refreshToken,refreshSecret) as JwtPayload;
+            const decoded = jwt.verify(refreshToken, refreshSecret) as JwtPayload;
             const account_role = decoded.account_role;
-            const payload = account_role === ACCOUNT_ROLE.USER ? {email: decoded.email} : {username: decoded.username}
+            const payload = account_role === ACCOUNT_ROLE.USER ? { email: decoded.email } : { username: decoded.username }
 
-            const newAccessToken = createToken({...payload, account_role}, '15m' , accessSecret);
-            const newRefreshToken = createToken({...payload, account_role} , '7d' , refreshSecret);
+            const newAccessToken = createToken({ ...payload, account_role }, '15m', accessSecret);
+            const newRefreshToken = createToken({ ...payload, account_role }, '7d', refreshSecret);
 
             res.status(200).send({
                 access_token: newAccessToken,
                 refresh_token: newRefreshToken
             })
-            
+
             res.status(200);
 
-        } catch (err : any) {
+        } catch (err: any) {
             if (err.name === 'TokenExpiredError') {
-                return res.status(401).send({ message: 'refreshToken đã hết hạn' }) ;
+                return res.status(401).send({ message: 'refreshToken đã hết hạn' });
             }
             if (err.name === 'JsonWebTokenError') {
                 return res.status(401).send({ message: 'refreshToken không hợp lệ' });
@@ -199,7 +199,7 @@ class AuthController {
         try {
             const { email } = req.body;
 
-            if(!validateEmail.validate(email)){
+            if (!validateEmail.validate(email)) {
                 res.status(400).send('Email không đáp ứng yêu cầu');
                 return;
             }
@@ -211,9 +211,9 @@ class AuthController {
                 return;
             }
 
-            if(user.is_google_account){
+            if (user.is_google_account) {
                 res.status(403).send('Tài khoản google không thể thay đổi mật khẩu');
-                return ;
+                return;
             }
 
             const resetPasswordToken = createToken({ email }, '5m', accessSecret);
@@ -225,13 +225,18 @@ class AuthController {
             res.status(500);
         }
     }
-    
-    loginGoogle(req: Request, res: Response, next: NextFunction) : void {
-        passport.authenticate('google', {
-            scope: ['email', 'profile']
-        })(req, res, next);
+
+    loginGoogle(req: Request, res: Response, next: NextFunction): void {
+        if (req.cookies.auth_token) {
+            return res.redirect(`${fe_access}`);
+        } else {
+            passport.authenticate('google', {
+                scope: ['email', 'profile'],
+                prompt: 'consent'
+            })(req, res, next);
+        }
     }
-    
+
     callbackGoogle(req: Request, res: Response, next: NextFunction): void {
         passport.authenticate('google', async (err: any, user: Express.User, info: any) => {
             if (err) {
@@ -240,16 +245,40 @@ class AuthController {
             if (!user) {
                 return res.redirect('fail');
             }
-    
+
             const email = (user as { email: string }).email;
-            const token = createToken({ email, account_role:ACCOUNT_ROLE.USER}, '1h', accessSecret);
-            
+            const token = createToken({ email, account_role: ACCOUNT_ROLE.USER }, '1h', accessSecret);
+
             const userProfile = await UserRepo.getUserByEmail(email);
             setAuthCookies(res, token, userProfile);
-    
+
             return res.redirect(`${fe_access}`);
         })(req, res, next);
     }
+
+    logout(req: Request, res: Response): void {
+        req.logout((err: any) => {
+            if (err) {
+                console.log(err.message);
+                return res.status(500).send('Đăng xuất không thành công');
+            }
+
+            if (req.session) {
+                req.session.destroy((err: any) => {
+                    if (err) {
+                        return res.status(500).send(err.message);
+                    }
+                    res.clearCookie('connect.sid');
+                    res.clearCookie('auth_token');
+                    res.clearCookie('user_profile')
+                    return res.redirect(`${fe_access}`);
+                });
+            } else {
+                return res.redirect(`${fe_access}`);
+            }
+        });
+    }
+
 }
 
 export default new AuthController();

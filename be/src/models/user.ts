@@ -36,10 +36,6 @@ const User = new Schema<IUser>({
         type: String,
         required: true
     },
-    babies: {
-        type: Schema.Types.ObjectId,
-        ref: 'Baby'
-    },
     password: {
         type: String,
     },

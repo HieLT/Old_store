@@ -11,5 +11,6 @@ authRouter.post('/new-access-token', authController.getNewAccessToken)
 
 authRouter.get('/google', authController.loginGoogle);
 authRouter.get('/google/callback', authController.callbackGoogle);
+authRouter.get('/google/logout', authController.logout);
 
 export default authRouter;

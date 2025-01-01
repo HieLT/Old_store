@@ -9,6 +9,7 @@ import passport from "passport";
 import * as http from "http";
 import { Server } from "socket.io";
 import connectSocket from "./services/socket";
+import session from "express-session";
 import './cron/cronJob'
 
 config();
@@ -31,7 +32,15 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(passport.initialize());
 connect();
-
+app.use(session({
+    secret: String(process.env.WEB_NAME), 
+    resave: false, 
+    saveUninitialized: false,  
+    cookie: {
+        httpOnly: true,  
+        maxAge: 3600000  
+    }
+}));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(
     bodyParser.urlencoded({

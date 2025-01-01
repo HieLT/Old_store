@@ -236,16 +236,16 @@ class OrderRepo {
         try {
             const orderExists = await Order.exists({
                 post_id: postId,
-                status: { $ne: ORDER_STATUS.CANCELLED},
+                status: { $ne: ORDER_STATUS.CANCELLED },
             });
             return !!orderExists;
-        } catch(err){
+        } catch (err) {
             throw err;
         }
     }
 
     //for dashboard
-    async ordersStatusUserDashboard(userId: string): Promise<any> {
+    async getOrdersStatusUserDashboard(userId: string): Promise<any> {
         try {
             const orderStatus = await Order.aggregate([
                 {
@@ -303,6 +303,7 @@ class OrderRepo {
         }
     }
 
+    //for dashboard
     async getRevenueUserDashboard(userId: string, timeFormat: string): Promise<any> {
         try {
             const revenue = await Order.aggregate([
@@ -324,11 +325,14 @@ class OrderRepo {
                 },
                 {
                     $match: {
-                        "posts.poster_id": userId
+
                     }
                 },
                 {
-                    $match: { total: { $ne: null, $gte: 20 } },
+                    $match: {
+                        "posts.poster_id": userId,
+                        total: { $ne: null, $gte: 20 }
+                    },
                 },
                 {
                     $group: {
@@ -366,6 +370,58 @@ class OrderRepo {
             ]);
 
             return expenses;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async getOrderByStatusAdminDashboard(): Promise<any> {
+        try {
+            return await Order.aggregate([
+                {
+                    $match: {
+                        is_deleted: false,
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 }
+                    }
+                }
+            ])
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async getOrderByTimeAdminDashboard(timeFormat: String): Promise<any> {
+        try {
+            return await Order.aggregate([
+                {
+                    $match: {
+                        is_deleted: false,
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: timeFormat, date: "$updatedAt" } },
+                    }
+                }
+            ])
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async getNumberOfOrderCurrently(): Promise<any> {
+        try {
+            return await Order.countDocuments(
+                {
+                    is_deleted: false,
+                    status: {$ne: ORDER_STATUS.CANCELLED}
+                }
+            )
         } catch (err) {
             throw err;
         }

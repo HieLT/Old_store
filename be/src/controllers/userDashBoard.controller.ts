@@ -8,10 +8,10 @@ interface CustomRequest extends Request {
 }
 
 class UserDashboardController {
-    async ratings(req: CustomRequest, res: Response): Promise<void> {
+    async getRatings(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
         try {
-            const ratings = await RatingRepo.ratingUserDashboard(account._id);
+            const ratings = await RatingRepo.getRatingUserDashboard(account._id);
 
             res.status(200).send(ratings);
         }catch(err: any){
@@ -19,10 +19,10 @@ class UserDashboardController {
         }
     }
 
-    async ordersStatus(req: CustomRequest, res: Response): Promise<void> {
+    async getOrdersStatus(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
         try {
-            const ordersStatus = await OrderRepo.ordersStatusUserDashboard(account._id)
+            const ordersStatus = await OrderRepo.getOrdersStatusUserDashboard(account._id)
 
             res.status(200).send(ordersStatus);
         }catch(err: any){
@@ -30,7 +30,7 @@ class UserDashboardController {
         }
     }
 
-    async revenue(req: CustomRequest, res: Response): Promise<void> {
+    async getRevenue(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
         const { groupBy = "month" } = req.query; 
         try {
@@ -42,7 +42,8 @@ class UserDashboardController {
             res.status(500).send(err.message);
         }
     }
-    async expenses(req: CustomRequest, res: Response): Promise<void> {
+
+    async getExpenses(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
         const { groupBy = "month" } = req.query; 
         try {
@@ -54,28 +55,6 @@ class UserDashboardController {
             res.status(500).send(err.message);
         }
     }
-    // async userGrowth(req: CustomRequest, res: Response):Promise<void> {
-    //     const account = req.account;
-    //     const { groupBy = "month" } = req.query;
-    //     try {
-    
-    //         const timeFormat = getTimeFormat(groupBy as string);
-    //         const userGrowth = await User.aggregate([
-    //             {
-    //                 $group: {
-    //                     _id: { $dateToString: { format: dateFormat, date: "$createdAt" } },
-    //                     count: { $sum: 1 },
-    //                 },
-    //             },
-    //             { $sort: { _id: 1 } },
-    //         ]);
-    
-    //         res.json({ success: true, data: userGrowth });
-    //     } catch (error) {
-    //         console.error(error);
-    //         res.status(500).json({ success: false, message: "Error fetching user growth data" });
-    //     }
-    // }
 }
 
 export default new UserDashboardController();
