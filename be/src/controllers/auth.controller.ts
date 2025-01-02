@@ -8,6 +8,7 @@ import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
 import passport from "../utils/passport";
 import { ACCOUNT_ROLE } from "../utils/enum";
+import axios from "axios";
 
 interface CustomRequest extends Request {
     account?: any;
@@ -68,7 +69,6 @@ const setAuthCookies = (
     const cookieOptions = {
         httpOnly: true,
         secure: true,
-        maxAge: 3600000,
     };
     res.cookie("access_token", accessToken, cookieOptions);
     res.cookie("refresh_token", refreshToken, cookieOptions);
@@ -329,9 +329,16 @@ class AuthController {
                     refreshSecret
                 );
                 delete userProfile.password;
-                setAuthCookies(res, accessToken, refreshToken, userProfile);
+                // setAuthCookies(res, accessToken, refreshToken, userProfile);
 
-                return res.redirect(`${fe_access}`);
+                return axios.post(`${fe_access}/api/set-cookies`, {
+                    accessToken,
+                    refreshToken,
+                    userProfile,
+                })
+                .then(() => res.redirect(`${fe_access}`))
+                .catch(err => res.redirect(`${fe_access}`))
+                // return res.redirect(`${fe_access}/api/set-cookies`);
             }
         )(req, res, next);
     }
