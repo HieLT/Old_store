@@ -69,10 +69,11 @@ const setAuthCookies = (
     const cookieOptions = {
         httpOnly: true,
         secure: true,
+        sameSite: 'none',
     };
-    res.cookie("access_token", accessToken, cookieOptions);
-    res.cookie("refresh_token", refreshToken, cookieOptions);
-    res.cookie("user_profile", JSON.stringify(userProfile), cookieOptions);
+    res.cookie("access_token", accessToken, cookieOptions as any);
+    res.cookie("refresh_token", refreshToken, cookieOptions as any);
+    res.cookie("user_profile", JSON.stringify(userProfile), cookieOptions as any);
 };
 
 class AuthController {
@@ -329,16 +330,8 @@ class AuthController {
                     refreshSecret
                 );
                 delete userProfile.password;
-                // setAuthCookies(res, accessToken, refreshToken, userProfile);
-
-                return axios.post(`${fe_access}/api/set-cookies`, {
-                    accessToken,
-                    refreshToken,
-                    userProfile,
-                })
-                .then(() => res.redirect(`${fe_access}`))
-                .catch(err => res.redirect(`${fe_access}`))
-                // return res.redirect(`${fe_access}/api/set-cookies`);
+                setAuthCookies(res, accessToken, refreshToken, userProfile);
+                res.redirect(`${fe_access}`);
             }
         )(req, res, next);
     }
