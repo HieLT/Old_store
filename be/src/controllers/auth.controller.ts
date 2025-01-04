@@ -8,6 +8,7 @@ import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
 import passport from "../utils/passport";
 import { ACCOUNT_ROLE } from "../utils/enum";
+import axios from "axios";
 
 interface CustomRequest extends Request {
     account?: any;
@@ -69,11 +70,11 @@ const setAuthCookies = (
     const cookieOptions = {
         httpOnly: true,
         secure: true,
-        maxAge: 3600000,
+        sameSite: 'none',
     };
-    res.cookie("access_token", accessToken, cookieOptions);
-    res.cookie("refresh_token", refreshToken, cookieOptions);
-    res.cookie("user_profile", JSON.stringify(userProfile), cookieOptions);
+    res.cookie("access_token", accessToken, cookieOptions as any);
+    res.cookie("refresh_token", refreshToken, cookieOptions as any);
+    res.cookie("user_profile", JSON.stringify(userProfile), cookieOptions as any);
 };
 
 class AuthController {
@@ -335,8 +336,7 @@ class AuthController {
                 );
                 delete userProfile.password;
                 setAuthCookies(res, accessToken, refreshToken, userProfile);
-
-                return res.redirect(`${fe_access}`);
+                res.redirect(`${fe_access}`);
             }
         )(req, res, next);
     }

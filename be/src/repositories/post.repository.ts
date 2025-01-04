@@ -267,7 +267,12 @@ class PostRepo {
                                         $map: {
                                             input: "$orders",
                                             as: "order",
-                                            in: { $ne: ["$$order.status", ORDER_STATUS.CANCELLED] },
+                                            in: {
+                                                $ne: [
+                                                    "$$order.status",
+                                                    ORDER_STATUS.CANCELLED,
+                                                ],
+                                            },
                                         },
                                     },
                                 },
@@ -293,7 +298,27 @@ class PostRepo {
             ];
 
             const [total, posts] = await Promise.all([
-                Post.aggregate([...commonQuery, { $count: "total" }]),
+                Post.aggregate([
+                    ...commonQuery,
+                    {
+                        $match: {
+                            ...searchFilter,
+                            ...priceFilter,
+                            ...(city ? { "location.city": city } : {}),
+                            ...(condition
+                                ? { "product.condition": { $in: conditions } }
+                                : {}),
+                            ...(category_ids
+                                ? {
+                                      "product.category_id": {
+                                          $in: categoryIds,
+                                      },
+                                  }
+                                : {}),
+                        },
+                    },
+                    { $count: "total" },
+                ]),
                 Post.aggregate([
                     ...commonQuery,
                     {
@@ -399,7 +424,12 @@ class PostRepo {
                                             $map: {
                                                 input: "$orders",
                                                 as: "order",
-                                                in: { $ne: ["$$order.status", ORDER_STATUS.CANCELLED] },
+                                                in: {
+                                                    $ne: [
+                                                        "$$order.status",
+                                                        ORDER_STATUS.CANCELLED,
+                                                    ],
+                                                },
                                             },
                                         },
                                     },
