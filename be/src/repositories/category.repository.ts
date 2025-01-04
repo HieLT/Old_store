@@ -389,7 +389,7 @@ class CategoryRepo {
                     post_id: post._id,
                     order_id: null,
                     title: `Các thuộc tính của danh mục ${category.name} đã thay đổi. Vui lòng cập nhật bài đăng theo các thuộc tính mới.`,
-                    type: NOTIFICATION_TYPE.RECEIVED,
+                    type: NOTIFICATION_TYPE.UPDATED_CATEGORY,
                     receiver_id: post.poster._id
                 })
             }))

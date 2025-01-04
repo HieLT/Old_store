@@ -9,7 +9,7 @@ import CloudinaryService from "../services/cloudinary";
 import { IAttribute } from "../models/attribute";
 import { IAttributeProduct } from "../models/attribute_product";
 import mongoose, { isValidObjectId, Types } from "mongoose";
-import { getDetailErrorMessage, getOneMonthLater } from "../utils/helpers";
+import { formatExpiredDate, getDetailErrorMessage, getOneMonthLater } from "../utils/helpers";
 import { updatePostSchema } from "../requests/post.request";
 import { NOTIFICATION_TYPE, POST_STATUS } from "../utils/enum";
 import { DEFAULT_GET_QUERY } from "../utils/constants";
@@ -536,15 +536,16 @@ class PostController {
                 return;
             }
             try {
+                const oneMonthLater = getOneMonthLater()
                 const updatedPost = !post?.expired_at ? {
-                    expired_at: getOneMonthLater(),
+                    expired_at: oneMonthLater,
                     status: POST_STATUS.APPROVED,
                 } : {
                     status: POST_STATUS.APPROVED
                 }
                 await PostRepo.updatePost(post._id, updatedPost);
                 await notificationRepository.sendNotification({
-                    title: "Bài đăng của bạn đã được duyệt. Nhấn để xem chi tiết bài đăng",
+                    title: `Bài đăng của bạn đã được duyệt và sẽ hết hạn vào ${formatExpiredDate(oneMonthLater)}. Nhấn để xem chi tiết bài đăng`,
                     type: NOTIFICATION_TYPE.APPROVED_POST,
                     receiver_id: post?.poster_id,
                     post_id: post?._id,

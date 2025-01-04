@@ -46,7 +46,6 @@ class UserRepo {
                     $project: {
                         password: 0,
                         is_deleted: 0,
-                        is_google_account: 0,
                     },
                 },
             ]);
@@ -216,25 +215,26 @@ class UserRepo {
                         }
                     ),
                 ]);
+            } else {
+                await Promise.all([
+                    User.findByIdAndUpdate(
+                        { _id: new ObjectId(followedUserId) },
+                        {
+                            $pull: {
+                                follower_ids: followerId,
+                            },
+                        }
+                    ),
+                    User.findByIdAndUpdate(
+                        { _id: new ObjectId(followerId) },
+                        {
+                            $pull: {
+                                following_user_ids: followedUserId,
+                            },
+                        }
+                    ),
+                ]);
             }
-            await Promise.all([
-                User.findByIdAndUpdate(
-                    { _id: new ObjectId(followedUserId) },
-                    {
-                        $pull: {
-                            follower_ids: followerId,
-                        },
-                    }
-                ),
-                User.findByIdAndUpdate(
-                    { _id: new ObjectId(followerId) },
-                    {
-                        $pull: {
-                            following_user_ids: followedUserId,
-                        },
-                    }
-                ),
-            ]);
         } catch (err) {
             throw err;
         }

@@ -16,8 +16,7 @@ class UserController {
     async getProfile(req: CustomRequest, res: Response): Promise<void> {
         try {
             const user = req.account;
-            const { password: _, ...userDetails } = user?.toObject();
-            res.status(200).send(userDetails);
+            res.status(200).send(await UserRepo.getUserById(user._id));
         } catch {
             res.status(500).send();
         }

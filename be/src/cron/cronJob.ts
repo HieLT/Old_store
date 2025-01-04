@@ -6,8 +6,8 @@ import attribute_product from '../models/attribute_product';
 import baby from '../models/baby';
 import notificationRepository from '../repositories/notification.repository';
 
-// every day at 00:01 
-cron.schedule('1 0 * * *', async () => {
+// every day at 00:00
+cron.schedule('0 0 * * *', async () => {
     try {
         await checkExpiredPosts();
     } catch (err) {

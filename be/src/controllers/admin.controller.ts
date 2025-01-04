@@ -21,7 +21,8 @@ interface CustomRequest extends Request {
 class AdminController {
     async getProfile(req: CustomRequest, res: Response): Promise<void> {
         try {
-            const account = req.account as IAdmin;
+            const admin = req.account;
+            const {password, ...account} = admin?.toObject();
             res.status(200).send(account);
         } catch(err) {
             res.status(400).send(err);
