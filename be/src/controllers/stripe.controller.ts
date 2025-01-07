@@ -6,7 +6,8 @@ const base_url = process.env.BASE_URL;
 const fe_url = process.env.FE_ACCESS;
 import orderRepo from "../repositories/order.repository";
 import userRepository from "../repositories/user.repository";
-import { ORDER_STATUS } from "../utils/enum";
+import { NOTIFICATION_TYPE, ORDER_STATUS } from "../utils/enum";
+import notificationRepository from "../repositories/notification.repository";
 
 interface CustomRequest extends Request {
     account?: any;
@@ -72,9 +73,17 @@ class StripeController {
             const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
 
             const order_id = paymentIntent.metadata.mongoose_order_id;
+            const order = await orderRepo.getOrder(order_id);
             await Promise.all([
                 orderRepo.updateStripePaymentIntentId(order_id,String(paymentIntent.id)),
-                orderRepo.updateStatusOrder(null, order_id, ORDER_STATUS.PROCESSING)
+                orderRepo.updateStatusOrder(null, order_id, ORDER_STATUS.PROCESSING),
+                notificationRepository.sendNotification({
+                    title: 'Đơn hàng đã được thanh toán, hãy bắt đầu thay đổi trạng thái đơn hàng',
+                    type: NOTIFICATION_TYPE.SUCCESS_PAYMENT,
+                    order_id: order_id,
+                    post_id: String(order?.post_id?._id),
+                    receiver_id: String(order?.post_id?.poster_id?._id)
+                })
             ]);
         } catch(err: any){
             console.log(err.message);

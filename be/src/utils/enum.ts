@@ -68,7 +68,8 @@ export const NOTIFICATION_TYPE = {
     DELIVERED_ORDER : 'delivered_order',
     RECEIVED : 'received',
     CANCELLED_ORDER: 'cancelled_order',
-    UPDATED_CATEGORY: 'updated_category'
+    UPDATED_CATEGORY: 'updated_category',
+    SUCCESS_PAYMENT: 'success_payment'
 };
 
 export const NOTIFICATION_TITLE = {
