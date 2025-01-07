@@ -340,8 +340,6 @@ class OrderController {
                         type: NOTIFICATION_TYPE.RECEIVED,
                         receiver_id: order.post_id.poster_id._id,
                     });
-
-                    res.status(200).send("Xác nhận đã nhận hàng thành công");
                 }
             } catch (err: any) {
                 res.status(400).send(err.message);
