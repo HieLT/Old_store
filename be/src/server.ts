@@ -10,7 +10,6 @@ import session from 'express-session';
 import * as http from "http";
 import { Server } from "socket.io";
 import connectSocket from "./services/socket";
-import session from "express-session";
 import './cron/cronJob'
 
 config();
