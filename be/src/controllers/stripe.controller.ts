@@ -85,10 +85,10 @@ class StripeController {
                     receiver_id: String(order?.post_id?.poster_id?._id)
                 })
             ]);
+            res.redirect(`${fe_url}/payment/success`)
         } catch(err: any){
             console.log(err.message);
         }
-        res.redirect(`${fe_url}/payment/success`)
     }
     
     async getStripeAccount(req: CustomRequest, res: Response): Promise<void> {
@@ -163,7 +163,7 @@ class StripeController {
         const stripe_account_id = req.params.account_id;
         const user_id = req.params.user_id;
         try {
-            const returnUrl = `${fe_url}/payment/connect-account-result/${stripe_account_id}`
+            const returnUrl = `${fe_url}/profile`
             const refreshUrl = `${base_url}/stripe/account-link/${stripe_account_id}/${user_id}`
             const accountLink = await stripe.accountLinks.create({
                 account: stripe_account_id,
