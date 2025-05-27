@@ -20,8 +20,6 @@ class AdminDashboardController {
                 orders,
             };
     
-            console.log(stats);  
-    
             res.status(200).send(stats);
         } catch (err: any) {
             res.status(500).send(err.message);
@@ -32,7 +30,9 @@ class AdminDashboardController {
     async getUserGrowth(req: Request, res: Response): Promise<any>{
         const { groupBy = 'month' }= req.query
         try{
+
             const timeFormat = getTimeFormat(String(groupBy));
+            
             const stats = await UserRepo.getUserRegistrationStats(timeFormat);
             res.status(200).send(stats);
         } catch(err: any){

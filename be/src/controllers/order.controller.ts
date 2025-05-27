@@ -12,8 +12,6 @@ import {
 import notificationRepo from "../repositories/notification.repository";
 import mail from "../services/mail";
 import { compileTemplate } from "../utils/helpers";
-import { readFileSync } from "fs";
-import path from "path";
 import moment from "moment";
 import productRepository from "../repositories/product.repository";
 

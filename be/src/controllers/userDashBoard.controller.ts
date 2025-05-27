@@ -31,10 +31,11 @@ class UserDashboardController {
     }
 
     async getRevenue(req: CustomRequest, res: Response): Promise<void> {
-        const account = req.account;
+        const account = req.account;       
         const { groupBy = "month" } = req.query; 
-        try {
+        try {    
             const timeFormat = getTimeFormat(String(groupBy));
+            
             const revenue = await OrderRepo.getRevenueUserDashboard(account._id, timeFormat);
     
             res.status(200).send(revenue);

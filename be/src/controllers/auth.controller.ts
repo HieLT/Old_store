@@ -8,7 +8,6 @@ import validatePassword from "../utils/validatePassword";
 import validateEmail from "email-validator";
 import passport from "../utils/passport";
 import { ACCOUNT_ROLE } from "../utils/enum";
-import axios from "axios";
 
 interface CustomRequest extends Request {
     account?: any;

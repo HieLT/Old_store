@@ -17,7 +17,7 @@ class StripeController {
         const { order_id } = req.body;
         try {
             const order = await orderRepo.getOrder(order_id);
-           
+
             if (!order) {
                 res.status(403).send('Order không tồn tại');
                 return;
@@ -26,7 +26,7 @@ class StripeController {
                 res.status(403).send('Bạn không thể thanh toán order của người khác');
                 return;
             }
-            
+
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
                 line_items: [
@@ -40,7 +40,7 @@ class StripeController {
                             unit_amount: order.total
 
                         },
-                            quantity: 1
+                        quantity: 1
                     }
                 ],
                 mode: 'payment',
@@ -59,29 +59,29 @@ class StripeController {
                 success_url: `${process.env.BASE_URL}/stripe/payment-success?session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${process.env.BASE_URL}/stripe/cancel`,
             })
-            
+
             res.status(200).send(session.url);
         } catch (err: any) {
             res.status(400).send(err.message);
         }
     }
-    async getPaymentIntentId(req : Request, res: Response):Promise<void> {
+    async getPaymentIntentId(req: Request, res: Response): Promise<void> {
         const session_id = req.query.session_id;
-        try{
+        try {
             const session = await stripe.checkout.sessions.retrieve(session_id);
             const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
 
             const order_id = paymentIntent.metadata.mongoose_order_id;
             await Promise.all([
-                orderRepo.updateStripePaymentIntentId(order_id,String(paymentIntent.id)),
+                orderRepo.updateStripePaymentIntentId(order_id, String(paymentIntent.id)),
                 orderRepo.updateStatusOrder(null, order_id, ORDER_STATUS.PROCESSING)
             ]);
-        } catch(err: any){
+        } catch (err: any) {
             console.log(err.message);
         }
         res.redirect(`${fe_url}/payment/success`)
     }
-    
+
     async getStripeAccount(req: CustomRequest, res: Response): Promise<void> {
         const account = req.account;
         try {
@@ -154,7 +154,7 @@ class StripeController {
         const stripe_account_id = req.params.account_id;
         const user_id = req.params.user_id;
         try {
-            const returnUrl = `${fe_url}/payment/connect-account-result/${stripe_account_id}`
+            const returnUrl = `${base_url}/stripe/account-link-result/${stripe_account_id}/${user_id}`
             const refreshUrl = `${base_url}/stripe/account-link/${stripe_account_id}/${user_id}`
             const accountLink = await stripe.accountLinks.create({
                 account: stripe_account_id,
@@ -163,24 +163,51 @@ class StripeController {
                 type: 'account_onboarding',
             });
 
-            if (accountLink.url === returnUrl) {
-                await userRepository.updateUser(user_id, {stripe_account_id});
-            }
-
             res.redirect(accountLink.url);
         } catch (err: any) {
             console.error('Error creating account link:', err.message);
             res.status(500).send('Failed to create a new account link. Please try again.');
         }
     };
+    async accountLinkResult(req: Request, res: Response): Promise<void> {
+        const { stripe_account_id, user_id } = req.params;
+
+        try {
+        
+            const account = await stripe.accounts.retrieve(stripe_account_id);
+
+            if (account.details_submitted && account.charges_enabled) {
+                const updateResult = await userRepository.updateUser(user_id, { stripe_account_id });
+
+                res.redirect(`${fe_url}/payment/connect-account-result/${stripe_account_id}?success=account_linked`);
+                return;
+            } else {
+                let errorType = 'setup_incomplete';
+
+                if (account.requirements?.disabled_reason) {
+                    errorType = 'account_rejected';
+                }
+
+                res.redirect(`${fe_url}/payment/connect-account-result/${stripe_account_id}?error=${errorType}`);
+            }
+        } catch (error: any) {
+            console.error('Error verifying account:', error);
+
+            if (error.type === 'StripeInvalidRequestError') {
+                res.redirect(`${fe_url}/payment/connect-account-result/${stripe_account_id}?error=account_not_found`);
+            } else {
+                res.redirect(`${fe_url}/payment/connect-account-result/${stripe_account_id}?error=verification_failed`);
+            }
+        }
+    }
     async checkPayoutEnable(req: Request, res: Response): Promise<void> {
         const stripe_id = req.params.stripe_id
-        try{
+        try {
             const account = await stripe.accounts.retrieve(stripe_id);
 
-            if(account.payouts_enabled) res.status(200).send('Tài khoản stripe của bạn đã liên kết với nền tảng website')
-            else res.status(400).send('Tài khoản stripe chưa liên kết với nền tảng website, hãy liên kết với nền tảng website ở phần chỉnh sửa thông tin của bạn')  
-        } catch(err: any){
+            if (account.payouts_enabled) res.status(200).send('Tài khoản stripe của bạn đã liên kết với nền tảng website')
+            else res.status(400).send('Tài khoản stripe chưa liên kết với nền tảng website, hãy liên kết với nền tảng website ở phần chỉnh sửa thông tin của bạn')
+        } catch (err: any) {
             res.status(400).send(err.message);
         }
     }

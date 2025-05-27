@@ -106,12 +106,10 @@ export const compileTemplate = (templatePath: string, data: object): string => {
 export const getTimeFormat = (groupingType: string): string => {
     switch (groupingType) {
         case "week":
-            return "%Y-%U"; // Year-Week (e.g., 2024-23)
-        case "month":
-            return "%Y-%m"; // Year-Month (e.g., 2024-11)
+            return "%Y-%U"; 
         case "year":
-            return "%Y"; // Year (e.g., 2024)
+            return "%Y"; 
         default:
-            return "%Y-%m"; // Default to month if invalid
+            return "%Y-%m"; 
     }
 };

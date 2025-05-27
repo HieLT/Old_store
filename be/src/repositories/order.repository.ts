@@ -244,7 +244,7 @@ class OrderRepo {
         }
     }
 
-    //for dashboard
+        //for dashboard
     async getOrdersStatusUserDashboard(userId: string): Promise<any> {
         try {
             const orderStatus = await Order.aggregate([
@@ -322,11 +322,6 @@ class OrderRepo {
                 },
                 {
                     $unwind: "$posts"
-                },
-                {
-                    $match: {
-
-                    }
                 },
                 {
                     $match: {
